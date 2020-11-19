@@ -1,0 +1,10 @@
+[awstools]
+debug = False
+
+[aws]
+profile = default
+# region = 'us-west-1'
+
+[ssh]
+
+useIP = PrivateIpAddress

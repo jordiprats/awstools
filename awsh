@@ -1,0 +1,3 @@
+#!/bin/bash
+
+awstools ec2 ssh $@

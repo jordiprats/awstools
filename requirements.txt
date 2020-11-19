@@ -1,0 +1,3 @@
+configparser
+click
+boto3
