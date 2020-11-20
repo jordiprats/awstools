@@ -119,7 +119,7 @@ def search(name, running):
                                 print_instance(tag['Value'], instance[ip_to_use], instance['InstanceId'])
                             else:
                                 print_instance(tag['Value'], instance[ip_to_use], instance['InstanceId'], instance['State']['Name'])
-                if not name_found:
+                if not name and not name_found:
                             if running and instance['State']['Name']=='running':
                                 print_instance('-', instance[ip_to_use], instance['InstanceId'])
                             else:
@@ -129,10 +129,21 @@ def search(name, running):
     
 @ec2.command()
 @click.argument('host')
-def ssh(host):
+@click.pass_context
+def ssh(ctx, host):
     """ssh to a EC2 instance by name"""
     global set_debug, ip_to_use
-    for reservation in aws_search_ec2_instances(host):
+
+    reservations = aws_search_ec2_instances(host)
+
+    if not reservations:
+        reservations = aws_search_ec2_instances('*'+host+'*')
+
+    if len(reservations) > 1:
+        ctx.invoke(search, name=host, running=True)
+        return
+
+    for reservation in reservations:
         for instance in reservation["Instances"]:
             if instance['State']['Name']=='running':
                 try:
