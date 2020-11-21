@@ -242,21 +242,41 @@ def aws_route53_list_resource_record_sets(zone_id):
         return records
     else:
         sys.exit('zone '+zone_id+' not found')
-    
 
 @route53.command()
 @click.argument('zone-id')
 @click.option('--include-not-importable', is_flag=True, default=False, help='include NS and SOA records')
-def export_records(zone_id, include_not_importable):
+@click.option('--exclude-domain-aws-validation', is_flag=True, default=False, help='exclude .acm-validations.aws. domains')
+def export_records(zone_id, include_not_importable, exclude_domain_aws_validation):
     """export zone records to JSON"""
     records = aws_route53_list_resource_record_sets(zone_id)
     
     zone_name = aws_route53_get_zone_name(zone_id)
 
     if not include_not_importable:
+        records_to_remove = []
         for record in records:
             if (record['Name']==zone_name and record['Type']=='NS') or (record['Name']==zone_name and record['Type']=='SOA'):
-                records.remove(record)
+                records_to_remove.append(record)
+        for record in records_to_remove:
+            records.remove(record)
+
+    if exclude_domain_aws_validation:
+        records_to_remove = []
+        for record in records:
+            try:
+                if record['Name'][0]=='_' and record['Type']=='CNAME':
+                    for resourcerecord in record['ResourceRecords']:
+                        try:
+                            if resourcerecord['Value'].endswith('.acm-validations.aws.'):
+                                records_to_remove.append(record)
+                                continue
+                        except:
+                            pass  
+            except:
+                pass
+        for record in records_to_remove:
+            records.remove(record)        
                 
     print(json.dumps(records))
 
