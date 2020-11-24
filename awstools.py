@@ -246,8 +246,9 @@ def aws_route53_list_resource_record_sets(zone_id):
 @route53.command()
 @click.argument('zone-id')
 @click.option('--include-not-importable', is_flag=True, default=False, help='include NS and SOA records')
-@click.option('--exclude-domain-aws-validation', is_flag=True, default=False, help='exclude .acm-validations.aws. domains')
-def export_records(zone_id, include_not_importable, exclude_domain_aws_validation):
+@click.option('--exclude-domain-aws-validation', is_flag=True, default=False, help='exclude .acm-validations.aws. records')
+@click.option('--domain-aws-validation', is_flag=True, default=False, help='only include .acm-validations.aws. records')
+def export_records(zone_id, include_not_importable, exclude_domain_aws_validation, domain_aws_validation):
     """export zone records to JSON"""
     records = aws_route53_list_resource_record_sets(zone_id)
     
@@ -261,23 +262,27 @@ def export_records(zone_id, include_not_importable, exclude_domain_aws_validatio
         for record in records_to_remove:
             records.remove(record)
 
-    if exclude_domain_aws_validation:
-        records_to_remove = []
+    if exclude_domain_aws_validation or domain_aws_validation:
+        aws_validation_records = []
         for record in records:
             try:
                 if record['Name'][0]=='_' and record['Type']=='CNAME':
                     for resourcerecord in record['ResourceRecords']:
                         try:
                             if resourcerecord['Value'].endswith('.acm-validations.aws.'):
-                                records_to_remove.append(record)
+                                aws_validation_records.append(record)
                                 continue
                         except:
                             pass  
             except:
                 pass
-        for record in records_to_remove:
-            records.remove(record)        
-                
+        if exclude_domain_aws_validation:
+            for record in aws_validation_records:
+                records.remove(record)
+        elif domain_aws_validation:
+            print(json.dumps(aws_validation_records))
+            return
+
     print(json.dumps(records))
 
 @route53.command()
