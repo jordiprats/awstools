@@ -49,7 +49,22 @@ def load_defaults(config_file):
 # EC2
 #
 
-def aws_search_ec2_instances(name):
+def aws_search_ec2_instances_by_id(instance_id):
+    global set_debug, set_profile, set_region
+
+    try:
+        if set_region:
+            ec2 = boto3.client(service_name='ec2', region_name=set_region)
+        else:
+            ec2 = boto3.client(service_name='ec2')
+    except Exception as e:
+        sys.exit('ERROR: '+str(e))
+
+    response = ec2.describe_instances(InstanceIds=[ instance_id ])
+
+    return response["Reservations"]
+
+def aws_search_ec2_instances_by_name(name):
     global set_debug, set_profile, set_region
 
     try:
@@ -105,7 +120,7 @@ def search(name, running):
     """search EC2 instances that it's names contains a string"""
     global set_debug, ip_to_use
 
-    reservations = aws_search_ec2_instances(name=None)
+    reservations = aws_search_ec2_instances_by_name(name=None)
 
     for reservation in reservations:
         for instance in reservation["Instances"]:
@@ -134,10 +149,13 @@ def ssh(ctx, host):
     """ssh to a EC2 instance by name"""
     global set_debug, ip_to_use
 
-    reservations = aws_search_ec2_instances(host)
+    if host.startswith('i-'):
+        reservations = aws_search_ec2_instances_by_id(host)
+    else:
+        reservations = aws_search_ec2_instances_by_name(host)
 
     if not reservations:
-        reservations = aws_search_ec2_instances('*'+host+'*')
+        reservations = aws_search_ec2_instances_by_name('*'+host+'*')
 
     if len(reservations) > 1:
         ctx.invoke(search, name=host, running=True)
