@@ -89,9 +89,9 @@ def aws_search_ec2_instances_by_name(name):
 
 def print_instance(instance_name, instance_id, instance_ip, instance_state=None):
     if instance_state:
-        print("{: <60} {: <20} {: <20} {: <20}".format(instance_name, instance_ip, instance_id, instance_state))
+        print("{: <60} {: <20} {: <20} {}".format(instance_name, instance_ip, instance_id, instance_state))
     else:
-        print("{: <60} {: <20} {: <20}".format(instance_name, instance_ip, instance_id ))
+        print("{: <60} {: <20} {}".format(instance_name, instance_ip, instance_id ))
 
 @click.group()
 @click.option('--profile', default=None, help='AWS profile', type=str)
@@ -105,8 +105,8 @@ def awstools(profile, region, debug):
     else:
         os.environ["AWS_PROFILE"] = set_profile
     
+    set_profile = profile
     set_region = region
-
     set_debug = debug
 
 @awstools.group()
@@ -213,7 +213,7 @@ def list(max_zones, public, private):
     """list route53 zones"""
     for zone in aws_list_route53_zones(max_zones):
         if (public and not zone['Config']['PrivateZone']) or (private and zone['Config']['PrivateZone']) or (not public and not private):
-            print("{: <60} {: <20} {: <60} {: <20}".format(zone['Name'], 'private' if zone['Config']['PrivateZone'] else 'public', zone['Id'], zone['ResourceRecordSetCount']))
+            print("{: <60} {: <20} {: <60} {}".format(zone['Name'], 'private' if zone['Config']['PrivateZone'] else 'public', zone['Id'], zone['ResourceRecordSetCount']))
 
 def aws_route53_zone_exists(zone_id):
     global route53_client
@@ -356,7 +356,7 @@ def import_records(zone_id, import_file, tr, tr_hz):
 
     response = route53_client.change_resource_record_sets(ChangeBatch=changebatch, HostedZoneId=zone_id.lstrip('/hostedzone/'))
 
-    print("{: <60} {: <20} ".format(response['ChangeInfo']['Id'], response['ChangeInfo']['Status']))
+    print("{: <60} {}".format(response['ChangeInfo']['Id'], response['ChangeInfo']['Status']))
 
 #
 # eks
@@ -404,7 +404,8 @@ def eks():
 
 @eks.command()
 @click.argument('cluster')
-def set_context(cluster):
+@click.option('--kubeconfig', default='', help='kubeconfig file', type=str)
+def set_context(cluster, kubeconfig):
     """import EKS cluster context to kubectl"""
     global set_debug, set_profile, set_region, ip_to_use
     if cluster in aws_list_eks_clusters():
@@ -417,6 +418,9 @@ def set_context(cluster):
             aws_eks_command.append('update-kubeconfig')
             aws_eks_command.append('--name')
             aws_eks_command.append(cluster)
+            if kubeconfig:
+                aws_eks_command.append('--kubeconfig')
+                aws_eks_command.append(kubeconfig)
             if set_debug:
                 print(' '.join(aws_eks_command))
             subprocess.check_call(aws_eks_command)
@@ -432,7 +436,254 @@ def list():
 
     for cluster in aws_list_eks_clusters():
         cluster_info = aws_eks_describe_cluster(cluster)
-        print("{: <60} {: <20} ".format(cluster, cluster_info['arn']))
+        print("{: <60} {}".format(cluster, cluster_info['arn']))
+
+#
+# S3
+#
+
+s3_client = None
+
+def init_s3_client():
+    global s3_client
+
+    try:
+        if set_region:
+            s3_client = boto3.client(service_name='s3', region_name=set_region)
+        else:
+            s3_client = boto3.client(service_name='s3')
+    except Exception as e:
+        sys.exit('ERROR: '+str(e))
+
+@awstools.group()
+def s3():
+    pass
+
+@s3.command()
+def list():
+    """list S3 buckets"""
+    global s3_client
+
+    if not s3_client:
+        init_s3_client()
+
+    response = s3_client.list_buckets()
+
+    for secret in response['SecretList']:
+        print(str(secret))
+
+@s3.command()
+@click.argument('bucket')
+def ls(bucket):
+    """list bucket contents"""
+    global s3_client
+
+    if not s3_client:
+        init_s3_client()
+
+    for bucket_object in s3_client.list_objects(Bucket=bucket)['Contents']:
+        print("{: <60} {}".format(bucket_object['Key'], str(bucket_object['LastModified'])))
+
+#
+# SM SecretManager
+#
+
+sm_client = None
+
+def init_sm_client():
+    global sm_client
+
+    try:
+        if set_region:
+            sm_client = boto3.client(service_name='secretsmanager', region_name=set_region)
+        else:
+            sm_client = boto3.client(service_name='secretsmanager')
+    except Exception as e:
+        sys.exit('ERROR: '+str(e))
+
+def aws_secretsmanager_list():
+    global sm_client
+
+    max_items = 100
+
+    if not sm_client:
+        init_sm_client()
+
+    batch = sm_client.list_secrets(MaxResults=max_items)
+    #print(str(batch))
+    records = batch['SecretList']
+    while 'NextToken' in batch.keys():
+        batch = sm_client.list_secrets(
+                                        MaxResults=max_items,
+                                        NextToken=batch['NextToken']
+                                        )
+
+        records += batch['SecretList']
+    return records
+
+@awstools.group()
+def sm():
+    pass
+
+@sm.command()
+def list():
+    """list secrets"""
+
+    secrets = aws_secretsmanager_list()
+
+    for secret in secrets:
+        print(str(secret))
+
+#
+# SSM
+#
+
+ssm_client = None
+
+def init_ssm_client():
+    global ssm_client
+
+    try:
+        if set_region:
+            ssm_client = boto3.client(service_name='ssm', region_name=set_region)
+        else:
+            ssm_client = boto3.client(service_name='ssm')
+    except Exception as e:
+        sys.exit('ERROR: '+str(e))
+
+
+def aws_ssm_list_parameters():
+    global ssm_client
+
+    max_items = 50
+
+    if not ssm_client:
+        init_ssm_client()
+
+    batch = ssm_client.describe_parameters(MaxResults=max_items)
+    #print(str(batch))
+    records = batch['Parameters']
+    while 'NextToken' in batch.keys():
+        batch = ssm_client.describe_parameters(
+                                                MaxResults=max_items,
+                                                NextToken=batch['NextToken']
+                                            )
+
+        records += batch['Parameters']
+    return records
+
+@awstools.group()
+def ssm():
+    pass
+
+@ssm.command()
+def list():
+    """list parameters"""
+
+    for parameter in aws_ssm_list_parameters():
+        #print(str(parameter))
+        if 'Description' in parameter.keys():
+            print("{: <60} {: <15} {: <80} {}".format(parameter['Name'], parameter['Type'], parameter['Description'], str(parameter['LastModifiedDate'])))
+        else:
+            print("{: <60} {: <15} {: <80} {}".format(parameter['Name'], parameter['Type'], '', str(parameter['LastModifiedDate'])))
+
+@ssm.command()
+@click.argument('parameter')
+@click.option('--output-json', is_flag=True, default=False, help='output as JSON')
+def get(parameter, output_json):
+    """get parameter"""
+    global ssm_client
+
+    if not ssm_client:
+        init_ssm_client()
+
+    try:
+        parameter = ssm_client.get_parameter(Name=parameter, WithDecryption=True)['Parameter']
+
+        parameter_json = {}
+
+        for key in [ 'Name', 'Value', 'Type', 'ARN', 'Description']:
+            if key in parameter.keys():
+                parameter_json[key] = parameter[key]
+            else:
+                parameter_json[key] = ''
+
+        if output_json:
+            print(json.dumps(parameter_json))
+        else:
+            print("{: <50} {: <30} {: <15} {}".format(parameter_json['Name'], parameter_json['Value'], parameter_json['Type'], parameter_json['ARN']))
+    except Exception as e:
+        sys.exit('Parameter not found: '+str(e))
+
+@ssm.command()
+@click.option('--import-file',  help='file to read json data from', type=click.File('r'), default=sys.stdin)
+def put(import_file):
+    parameter_json = json.load(import_file)
+
+    if not ssm_client:
+        init_ssm_client()
+
+    response = ssm_client.put_parameter(
+                                Name=parameter_json['Name'],
+                                Value=parameter_json['Value'],
+                                Description=parameter_json['Description'],
+                                Type=parameter_json['Type'],
+                            )
+    
+    print(str(response['ResponseMetadata']['RequestId']))
+
+#
+# KMS
+#
+
+kms_client = None
+
+def init_kms_client():
+    global kms_client
+
+    try:
+        if set_region:
+            kms_client = boto3.client(service_name='kms', region_name=set_region)
+        else:
+            kms_client = boto3.client(service_name='kms')
+    except Exception as e:
+        sys.exit('ERROR: '+str(e))
+
+def aws_kms_list():
+    global kms_client
+
+    max_items = 1000
+
+    if not kms_client:
+        init_kms_client()
+
+    batch = kms_client.list_keys(Limit=max_items)
+    #print(str(batch))
+    key_ids = batch['Keys']
+    while 'NextMarker' in batch.keys():
+        batch = kms_client.list_keys(
+                                        Limit=max_items,
+                                        Marker=batch['NextMarker']
+                                    )
+
+        key_ids += batch['Keys']
+    records = []
+
+    for key in key_ids:
+        response = kms_client.describe_key(KeyId=key['KeyId'])
+        records.append(response['KeyMetadata'])
+    return records
+
+@awstools.group()
+def kms():
+    pass
+
+@kms.command()
+def list():
+    """list parameters"""
+    for key in aws_kms_list():
+        #print(str(key))
+        print("{: <50} {}".format(key['KeyId'], key['Description']))
 
 if __name__ == '__main__':
     load_defaults(os.path.join(os.getenv("HOME"), '.awstools/config'))
