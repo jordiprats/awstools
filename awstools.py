@@ -3,6 +3,7 @@
 from configparser import ConfigParser
 
 import subprocess
+import base64
 import boto3
 import click
 import json
@@ -45,9 +46,38 @@ def load_defaults(config_file):
     except:
         pass
 
+@click.group()
+@click.option('--profile', default=None, help='AWS profile', type=str)
+@click.option('--region', default=None, help='AWS region', type=str)
+@click.option('--debug', is_flag=True, default=False, help='set debug mode')
+def awstools(profile, region, debug):
+    global set_debug, set_profile, set_region
+
+    if profile:
+        os.environ["AWS_PROFILE"] = profile
+    else:
+        os.environ["AWS_PROFILE"] = set_profile
+    
+    set_profile = profile
+    set_region = region
+    set_debug = debug
+
 #
 # EC2
 #
+
+ec2_client = None
+
+def init_ec2_client():
+    global ec2_client
+
+    try:
+        if set_region:
+            ec2_client = boto3.client(service_name='ec2', region_name=set_region)
+        else:
+            ec2_client = boto3.client(service_name='ec2')
+    except Exception as e:
+        sys.exit('ERROR: '+str(e))
 
 def aws_search_ec2_instances_by_id(instance_id):
     global set_debug, set_profile, set_region
@@ -87,27 +117,18 @@ def aws_search_ec2_instances_by_name(name):
 
     return response["Reservations"]
 
+def aws_ec2_describe_ami(ami):
+
+    ec2 = boto3.resource('ec2')
+    image = ec2.Image(ami)
+
+    return image
+
 def print_instance(instance_name, instance_id, instance_ip, instance_state=None):
     if instance_state:
         print("{: <60} {: <20} {: <20} {}".format(instance_name, instance_ip, instance_id, instance_state))
     else:
         print("{: <60} {: <20} {}".format(instance_name, instance_ip, instance_id ))
-
-@click.group()
-@click.option('--profile', default=None, help='AWS profile', type=str)
-@click.option('--region', default=None, help='AWS region', type=str)
-@click.option('--debug', is_flag=True, default=False, help='set debug mode')
-def awstools(profile, region, debug):
-    global set_debug, set_profile, set_region
-
-    if profile:
-        os.environ["AWS_PROFILE"] = profile
-    else:
-        os.environ["AWS_PROFILE"] = set_profile
-    
-    set_profile = profile
-    set_region = region
-    set_debug = debug
 
 @awstools.group()
 def ec2():
@@ -172,6 +193,76 @@ def ssh(ctx, host):
                         print(str(e))
                     return
     sys.exit('Not found')
+
+# @ec2.command()
+# @click.argument('ami')
+# def show_ami(ami):
+#     image = aws_ec2_describe_ami(ami)
+
+#     # TODO
+
+@ec2.command()
+@click.argument('ami')
+def show_ami_launchpermissions(ami):
+    global ec2_client
+
+    if not ec2_client:
+        init_ec2_client()
+
+    response = ec2_client.describe_image_attribute(
+                                                    Attribute='launchPermission',
+                                                    ImageId=ami,
+                                                    DryRun=False
+                                                )
+    # print(str(response['LaunchPermissions']))
+
+    for launchpermission in response['LaunchPermissions']:
+        if 'UserId' in launchpermission.keys():
+            print("{: <15} {}".format('UserId', launchpermission['UserId']))
+        if 'Group' in launchpermission.keys():
+            print("{: <15} {}".format('Group', launchpermission['Group']))
+
+@ec2.command()
+@click.argument('ami')
+@click.option('--account',  multiple=True, default=[], help='Add account to LaunchPermissions')
+def add_ami_launchpermissions(ami, account):
+    global ec2_client
+
+    if not ec2_client:
+        init_ec2_client()
+    
+    accounts = []
+    for i in account:
+        accounts.append(i)
+
+    if accounts:
+        response = ec2_client.modify_image_attribute(
+                                                ImageId=ami, 
+                                                OperationType='add', 
+                                                Attribute='launchPermission', 
+                                                UserIds=accounts
+                                            )
+        print('HTTP '+str(response['ResponseMetadata']['HTTPStatusCode'])+' '+response['ResponseMetadata']['RequestId'])
+
+@ec2.command()
+@click.argument('keypair')
+@click.option('--pub-file',  help='public side to import', type=click.File('r'), default=sys.stdin)
+def import_keypair(keypair, pub_file):
+    global ec2_client
+
+    if not ec2_client:
+        init_ec2_client()
+    
+    pub_bytes = bytes(pub_file.read(), 'utf-8')
+
+    response = ec2_client.import_key_pair(
+                                            DryRun=False,
+                                            KeyName=keypair,
+                                            PublicKeyMaterial=pub_bytes,
+                                        )
+    print('HTTP '+str(response['ResponseMetadata']['HTTPStatusCode'])+' '+response['ResponseMetadata']['RequestId']+' KeyFingerprint: '+response['KeyFingerprint'])
+
+
 
 #
 # route53
@@ -617,14 +708,20 @@ def get(parameter, output_json):
 
 @ssm.command()
 @click.option('--import-file',  help='file to read json data from', type=click.File('r'), default=sys.stdin)
-def put(import_file):
+@click.option('--rename',  default=None, help='Rename parameter to')
+def put(import_file, rename):
     parameter_json = json.load(import_file)
 
     if not ssm_client:
         init_ssm_client()
 
+    if rename:
+        parameter_name = rename
+    else:
+        parameter_name = parameter_json['Name']
+
     response = ssm_client.put_parameter(
-                                Name=parameter_json['Name'],
+                                Name=parameter_name,
                                 Value=parameter_json['Value'],
                                 Description=parameter_json['Description'],
                                 Type=parameter_json['Type'],
