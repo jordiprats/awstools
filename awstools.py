@@ -178,20 +178,25 @@ def ssh(ctx, host):
     if not reservations:
         reservations = aws_search_ec2_instances_by_name('*'+host+'*')
 
-    if len(reservations) > 1:
-        ctx.invoke(search, name=host, running=True)
-        return
-
+    candidates = []
     for reservation in reservations:
         for instance in reservation["Instances"]:
             if instance['State']['Name']=='running':
-                try:
-                    subprocess.check_call(['ssh', instance[ip_to_use]])
-                    return
-                except Exception as e:
-                    if set_debug:
-                        print(str(e))
-                    return
+                candidates.append(instance[ip_to_use])
+
+    if len(candidates) > 1:
+        if set_debug:
+            print(str(candidates))
+        ctx.invoke(search, name=host, running=True)
+        return
+
+    try:
+        subprocess.check_call(['ssh', candidates[0]])
+        return
+    except Exception as e:
+        if set_debug:
+            print(str(e))
+        return
     sys.exit('Not found')
 
 # @ec2.command()
@@ -709,7 +714,8 @@ def get(parameter, output_json):
 @ssm.command()
 @click.option('--import-file',  help='file to read json data from', type=click.File('r'), default=sys.stdin)
 @click.option('--rename',  default=None, help='Rename parameter to')
-def put(import_file, rename):
+@click.option('--overwrite', is_flag=True, default=False, help='overwrite parameter')
+def put(import_file, rename, overwrite):
     parameter_json = json.load(import_file)
 
     if not ssm_client:
@@ -725,9 +731,26 @@ def put(import_file, rename):
                                 Value=parameter_json['Value'],
                                 Description=parameter_json['Description'],
                                 Type=parameter_json['Type'],
+                                Overwrite=overwrite,
                             )
     
     print(str(response['ResponseMetadata']['RequestId']))
+
+@ssm.command()
+@click.argument('parameter')
+def delete(parameter):
+    """delete parameter"""
+    global ssm_client
+
+    if not ssm_client:
+        init_ssm_client()
+
+    try:
+        response = ssm_client.delete_parameter(Name=parameter)
+
+        print('HTTP '+str(response['ResponseMetadata']['HTTPStatusCode'])+' '+response['ResponseMetadata']['RequestId'])
+    except Exception as e:
+        sys.exit('Parameter not found: '+str(e))
 
 #
 # KMS
@@ -781,6 +804,109 @@ def list():
     for key in aws_kms_list():
         #print(str(key))
         print("{: <50} {}".format(key['KeyId'], key['Description']))
+
+#
+# ACM
+#
+
+acm_client = None
+
+def init_acm_client():
+    global acm_client
+
+    try:
+        if set_region:
+            acm_client = boto3.client(service_name='acm', region_name=set_region)
+        else:
+            acm_client = boto3.client(service_name='acm')
+    except Exception as e:
+        sys.exit('ERROR: '+str(e))
+
+def aws_acm_list():
+    global acm_client
+
+    max_items = 1000
+
+    if not acm_client:
+        init_acm_client()
+
+    batch = acm_client.list_certificates(MaxItems=max_items)
+    #print(str(batch))
+    records = batch['CertificateSummaryList']
+    while 'NextToken' in batch.keys():
+        batch = acm_client.list_certificates(
+                                        MaxItems=max_items,
+                                        NextToken=batch['NextToken']
+                                    )
+
+        records += batch['CertificateSummaryList']
+    
+    return records
+
+@awstools.group()
+def acm():
+    pass
+
+@acm.command()
+def list():
+    """list certificates"""
+
+    certs = aws_acm_list()
+
+    for cert in certs:
+        print("{: <50} {}".format(cert['CertificateArn'], cert['DomainName']))
+
+#
+# RDS
+#
+
+rds_client = None
+
+def init_rds_client():
+    global rds_client
+
+    try:
+        if set_region:
+            rds_client = boto3.client(service_name='rds', region_name=set_region)
+        else:
+            rds_client = boto3.client(service_name='rds')
+    except Exception as e:
+        sys.exit('ERROR: '+str(e))
+
+
+def aws_acm_list_db_instances():
+    global rds_client
+
+    max_items = 100
+
+    if not rds_client:
+        init_rds_client()
+
+    batch = rds_client.describe_db_instances(MaxRecords=max_items)
+    #print(str(batch))
+    records = batch['DBInstances']
+    while 'Marker' in batch.keys():
+        batch = rds_client.describe_db_instances(
+                                        MaxRecords=max_items,
+                                        Marker=batch['Marker']
+                                    )
+
+        records += batch['DBInstances']
+    
+    return records
+
+@awstools.group()
+def rds():
+    pass
+
+@rds.command()
+def list():
+    """list dbs instances"""
+
+    dbinstances = aws_acm_list_db_instances()
+
+    for dbinstance in dbinstances:
+        print("{: <50} {: <20} {}".format(dbinstance['DBInstanceIdentifier'], dbinstance['Engine'], str(dbinstance['DBParameterGroups'])))
 
 if __name__ == '__main__':
     load_defaults(os.path.join(os.getenv("HOME"), '.awstools/config'))
