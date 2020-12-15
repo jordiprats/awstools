@@ -137,9 +137,15 @@ def ec2():
 @ec2.command()
 @click.argument('name', default='')
 @click.option('--running', is_flag=True, default=False, help='show only running instances')
-def search(name, running):
+@click.option('--connect', is_flag=True, default=False, help='connect to this instance')
+@click.pass_context
+def search(ctx, name, running, connect):
     """search EC2 instances that it's names contains a string"""
     global set_debug, ip_to_use
+
+    if connect:
+        ctx.invoke(ssh, host=name)
+        return
 
     reservations = aws_search_ec2_instances_by_name(name=None)
 
@@ -794,16 +800,80 @@ def aws_kms_list():
         records.append(response['KeyMetadata'])
     return records
 
+def aws_kms_get_key_policies(key):
+    global kms_client
+
+    max_items = 1000
+
+    if not kms_client:
+        init_kms_client()
+
+    batch = kms_client.list_key_policies(KeyId=key, Limit=max_items)
+    #print(str(batch))
+    records = batch['PolicyNames']
+    while 'NextMarker' in batch.keys():
+        batch = kms_client.list_keys(
+                                        Limit=max_items,
+                                        Marker=batch['NextMarker']
+                                    )
+
+        records += batch['PolicyNames']
+
+    return records
+
 @awstools.group()
 def kms():
     pass
 
 @kms.command()
 def list():
-    """list parameters"""
+    """list keys"""
     for key in aws_kms_list():
         #print(str(key))
         print("{: <50} {}".format(key['KeyId'], key['Description']))
+
+@kms.command()
+@click.argument('key')
+def get_key_policies(key):
+    """get key policies"""
+
+    policies = aws_kms_get_key_policies(key)
+
+    for policy in policies:
+        print(str(policy))
+
+@kms.command()
+@click.argument('key')
+@click.argument('policy')
+def get_key_policy(key, policy):
+    """get key policy"""
+    global kms_client
+
+    if not kms_client:
+        init_kms_client()
+
+    response = kms_client.get_key_policy(KeyId=key, PolicyName=policy)
+
+    print(response['Policy'])
+
+@kms.command()
+@click.argument('key')
+@click.argument('policy')
+@click.option('--policy-file',  help='file to read json data from', type=click.File('r'), default=sys.stdin)
+def set_key_policy(key, policy, policy_file):
+    """set key policy"""
+    global kms_client
+
+    if not kms_client:
+        init_kms_client()
+
+    response = kms_client.put_key_policy(
+                                            KeyId=key,
+                                            PolicyName=policy,
+                                            Policy=policy_file.read()
+                                        )
+    
+    print('HTTP '+str(response['ResponseMetadata']['HTTPStatusCode'])+' '+response['ResponseMetadata']['RequestId'])
 
 #
 # ACM
