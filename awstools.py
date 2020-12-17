@@ -872,7 +872,7 @@ def set_key_policy(key, policy, policy_file):
                                             PolicyName=policy,
                                             Policy=policy_file.read()
                                         )
-    
+
     print('HTTP '+str(response['ResponseMetadata']['HTTPStatusCode'])+' '+response['ResponseMetadata']['RequestId'])
 
 #
