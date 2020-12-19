@@ -722,6 +722,7 @@ def get(parameter, output_json):
 @click.option('--rename',  default=None, help='Rename parameter to')
 @click.option('--overwrite', is_flag=True, default=False, help='overwrite parameter')
 def put(import_file, rename, overwrite):
+    """import parameter from JSON"""
     parameter_json = json.load(import_file)
 
     if not ssm_client:
@@ -737,6 +738,26 @@ def put(import_file, rename, overwrite):
                                 Value=parameter_json['Value'],
                                 Description=parameter_json['Description'],
                                 Type=parameter_json['Type'],
+                                Overwrite=overwrite,
+                            )
+    
+    print(str(response['ResponseMetadata']['RequestId']))
+
+@ssm.command()
+@click.argument('parameter')
+@click.argument('value')
+@click.option('--description', default='', help='parameter description', type=str)
+@click.option('--overwrite', is_flag=True, default=False, help='overwrite parameter')
+def set(parameter, value, description, overwrite):
+    """set SecureString parameter"""
+    if not ssm_client:
+        init_ssm_client()
+
+    response = ssm_client.put_parameter(
+                                Name=parameter,
+                                Value=value,
+                                Description=description,
+                                Type='SecureString',
                                 Overwrite=overwrite,
                             )
     
