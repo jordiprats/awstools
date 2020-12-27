@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 
 from configparser import ConfigParser
+from botocore.client import Config
 
 import subprocess
 import base64
@@ -545,21 +546,58 @@ def list():
 #
 
 s3_client = None
+set_endpoint = None
+set_access_key = None
+set_secret = None
 
 def init_s3_client():
-    global s3_client
+    global s3_client, set_endpoint, set_access_key, set_secret
 
     try:
         if set_region:
             s3_client = boto3.client(service_name='s3', region_name=set_region)
         else:
-            s3_client = boto3.client(service_name='s3')
+            if set_endpoint:
+                s3_client = boto3.client(
+                                            service_name='s3',
+                                            endpoint_url=set_endpoint,
+                                            aws_access_key_id=set_access_key,
+                                            aws_secret_access_key=set_secret,
+                                            config=Config(signature_version='s3v4'),
+                                        )
+            else:
+                s3_client = boto3.client(service_name='s3')
     except Exception as e:
         sys.exit('ERROR: '+str(e))
 
 @awstools.group()
-def s3():
-    pass
+@click.option('--endpoint', default=None, help='URL S3 endpoint', type=str)
+@click.option('--access-key', default=None, help='S3 access key', type=str)
+@click.option('--secret', default=None, help='S3 secret for the access key', type=str)
+def s3(endpoint, access_key, secret):
+    global set_endpoint, set_access_key, set_secret
+    
+    set_endpoint = endpoint
+    set_access_key = access_key
+    set_secret = secret
+
+@s3.command()
+@click.option('--region', default=None, help='region', type=str)
+@click.argument('bucket')
+def create_bucket(bucket, region):
+    """ create new bucket"""
+    global s3_client
+
+    if not s3_client:
+        init_s3_client()
+
+    if region:
+        location = {'LocationConstraint': region}
+        response = s3_client.create_bucket(Bucket=bucket, CreateBucketConfiguration=location)
+    else:
+        response = s3_client.create_bucket(Bucket=bucket)
+    
+    print('HTTP '+str(response['ResponseMetadata']['HTTPStatusCode'])+' '+response['ResponseMetadata']['RequestId'])
 
 @s3.command()
 def list():
@@ -571,8 +609,8 @@ def list():
 
     response = s3_client.list_buckets()
 
-    for secret in response['SecretList']:
-        print(str(secret))
+    for bucket in response['Buckets']:
+        print("{: <60} {}".format(bucket['Name'], str(bucket['CreationDate'])))
 
 @s3.command()
 @click.argument('bucket')
@@ -583,8 +621,11 @@ def ls(bucket):
     if not s3_client:
         init_s3_client()
 
-    for bucket_object in s3_client.list_objects(Bucket=bucket)['Contents']:
-        print("{: <60} {}".format(bucket_object['Key'], str(bucket_object['LastModified'])))
+    try:
+        for bucket_object in s3_client.list_objects(Bucket=bucket)['Contents']:
+            print("{: <60} {}".format(bucket_object['Key'], str(bucket_object['LastModified'])))
+    except:
+        pass
 
 #
 # SM SecretManager
