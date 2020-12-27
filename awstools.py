@@ -612,20 +612,43 @@ def list():
     for bucket in response['Buckets']:
         print("{: <60} {}".format(bucket['Name'], str(bucket['CreationDate'])))
 
+# @s3.command()
+# @click.argument('bucket')
+# @click.argument('file')
+# @click.option('--public', is_flag=True, default=False, help='public ACL')
+# @click.option('--import-file',  help='file to read json data from', type=click.File('r'), default=sys.stdin)
+# def put(bucket):
+#     """put file"""
+#     global s3_client
+
+#     if not s3_client:
+#         init_s3_client()
+    
+#     if public:
+#         acl = 'public'
+#     else:
+#         acl = 'private'
+
+
 @s3.command()
 @click.argument('bucket')
-def ls(bucket):
+@click.option('--path', default='/', help='path', type=str)
+def ls(bucket, path):
     """list bucket contents"""
     global s3_client
 
     if not s3_client:
         init_s3_client()
 
-    try:
-        for bucket_object in s3_client.list_objects(Bucket=bucket)['Contents']:
+    if path=='/':
+        try:
+            for bucket_object in s3_client.list_objects(Bucket=bucket)['Contents']:
+                print("{: <60} {}".format(bucket_object['Key'], str(bucket_object['LastModified'])))
+        except:
+            pass
+    else:
+        for bucket_object in s3.list_objects_v2(Bucket=bucket, Prefix = path, MaxKeys=100 )['Contents']:
             print("{: <60} {}".format(bucket_object['Key'], str(bucket_object['LastModified'])))
-    except:
-        pass
 
 #
 # SM SecretManager
