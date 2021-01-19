@@ -756,7 +756,9 @@ def list():
 @ssm.command()
 @click.argument('parameter')
 @click.option('--output-json', is_flag=True, default=False, help='output as JSON')
-def get(parameter, output_json):
+@click.option('--output-k8s-secret', is_flag=True, default=False, help='output as JSON')
+@click.option('--k8s-secret-name',  default=None, help='Rename parameter to')
+def get(parameter, output_json, output_k8s_secret, k8s_secret_name):
     """get parameter"""
     global ssm_client
 
@@ -776,6 +778,19 @@ def get(parameter, output_json):
 
         if output_json:
             print(json.dumps(parameter_json))
+        if output_k8s_secret:
+            value_b64 = base64.b64encode(parameter_json['Value'].encode('utf-8')).decode('utf-8')
+
+            if not k8s_secret_name:
+                k8s_secret_name = re.sub('^-', '', parameter_json['Name'].replace('/', '-'))
+
+            print('apiVersion: v1')
+            print('data:')
+            print('  {}: {}'.format(k8s_secret_name, value_b64))
+            print('kind: Secret')
+            print('metadata:')
+            print('  name: "{}"'.format(k8s_secret_name))
+            print('type: Opaque')
         else:
             print("{: <50} {: <30} {: <15} {}".format(parameter_json['Name'], parameter_json['Value'], parameter_json['Type'], parameter_json['ARN']))
     except Exception as e:
