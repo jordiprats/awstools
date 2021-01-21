@@ -575,6 +575,7 @@ def init_s3_client():
 @click.option('--access-key', default=None, help='S3 access key', type=str)
 @click.option('--secret', default=None, help='S3 secret for the access key', type=str)
 def s3(endpoint, access_key, secret):
+    """ S3 utilities """
     global set_endpoint, set_access_key, set_secret
     
     set_endpoint = endpoint
@@ -611,6 +612,8 @@ def list():
 
     for bucket in response['Buckets']:
         print("{: <60} {}".format(bucket['Name'], str(bucket['CreationDate'])))
+
+# rclone autoconfig?
 
 # @s3.command()
 # @click.argument('bucket')
