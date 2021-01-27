@@ -781,7 +781,7 @@ def get(parameter, output_json, output_k8s_secret, k8s_secret_name):
 
         if output_json:
             print(json.dumps(parameter_json))
-        if output_k8s_secret:
+        elif output_k8s_secret:
             value_b64 = base64.b64encode(parameter_json['Value'].encode('utf-8')).decode('utf-8')
 
             if not k8s_secret_name:
