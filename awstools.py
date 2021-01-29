@@ -172,8 +172,9 @@ def search(ctx, name, running, connect):
     
 @ec2.command()
 @click.argument('host')
+@click.argument('command', default='')
 @click.pass_context
-def ssh(ctx, host):
+def ssh(ctx, host, command):
     """ssh to a EC2 instance by name"""
     global set_debug, ip_to_use
 
@@ -198,7 +199,10 @@ def ssh(ctx, host):
         return
 
     try:
-        subprocess.check_call(['ssh', candidates[0]])
+        if command:
+            subprocess.check_call(['ssh', candidates[0], command])
+        else:
+            subprocess.check_call(['ssh', candidates[0]])
         return
     except Exception as e:
         if set_debug:
