@@ -12,6 +12,8 @@ import sys
 import re
 import os
 
+HOSTED_ZONE_PREFIX = '/hostedzone/'
+
 set_debug = False
 set_profile = 'default'
 set_region = None
@@ -133,6 +135,7 @@ def print_instance(instance_name, instance_id, instance_ip, instance_state=None)
 
 @awstools.group()
 def ec2():
+    """ EC2 related commands """
     pass
 
 @ec2.command()
@@ -310,6 +313,7 @@ def aws_list_route53_zones(max_zones):
 
 @awstools.group()
 def route53():
+    """ Route53 related commands """
     pass
 
 @route53.command()
@@ -373,8 +377,13 @@ def aws_route53_list_resource_record_sets(zone_id):
 @click.option('--include-not-importable', is_flag=True, default=False, help='include NS and SOA records')
 @click.option('--exclude-domain-aws-validation', is_flag=True, default=False, help='exclude .acm-validations.aws. records')
 @click.option('--domain-aws-validation', is_flag=True, default=False, help='only include .acm-validations.aws. records')
-def export_records(zone_id, include_not_importable, exclude_domain_aws_validation, domain_aws_validation):
+@click.option('--match-records', default="", help='select specific records', type=str)
+def export_records(zone_id, include_not_importable, exclude_domain_aws_validation, domain_aws_validation, match_records):
     """export zone records to JSON"""
+
+    if HOSTED_ZONE_PREFIX not in zone_id:
+        zone_id = HOSTED_ZONE_PREFIX+zone_id
+
     records = aws_route53_list_resource_record_sets(zone_id)
     
     zone_name = aws_route53_get_zone_name(zone_id)
@@ -387,6 +396,15 @@ def export_records(zone_id, include_not_importable, exclude_domain_aws_validatio
         for record in records_to_remove:
             records.remove(record)
 
+    if match_records:
+        records_to_remove = []
+        for record in records:
+            if match_records not in record['Name']:
+                records_to_remove.append(record)
+                print(record['Name'])
+        for record in records_to_remove:
+            records.remove(record)
+    
     if exclude_domain_aws_validation or domain_aws_validation:
         aws_validation_records = []
         for record in records:
@@ -419,13 +437,14 @@ def import_records(zone_id, import_file, tr, tr_hz):
     """import zone records from file or stdin in JSON format"""
     global set_debug, route53_client
 
-    if tr:
-        if tr[-1]!='.':
-            tr+='.'
+    if HOSTED_ZONE_PREFIX not in zone_id:
+        zone_id = HOSTED_ZONE_PREFIX+zone_id
 
-    if tr_hz:
-        if '/hostedzone/' in tr_hz:
-            tr_hz = tr_hz.lstrip('/hostedzone/')
+    if tr and tr[-1]!='.':
+        tr+='.'
+
+    if tr_hz and HOSTED_ZONE_PREFIX in tr_hz:
+        tr_hz = tr_hz.lstrip(HOSTED_ZONE_PREFIX)
 
     if not aws_route53_zone_exists(zone_id):
         sys.exit('zone not found')
@@ -444,7 +463,7 @@ def import_records(zone_id, import_file, tr, tr_hz):
         if tr_hz:
             try:
                 if record['AliasTarget']['HostedZoneId']==tr_hz:
-                    record['AliasTarget']['HostedZoneId']=zone_id.lstrip('/hostedzone/')
+                    record['AliasTarget']['HostedZoneId']=zone_id.lstrip(HOSTED_ZONE_PREFIX)
             except:
                 pass
         change = {}
@@ -461,7 +480,7 @@ def import_records(zone_id, import_file, tr, tr_hz):
     if set_debug:
         print(json.dumps(changebatch))
 
-    response = route53_client.change_resource_record_sets(ChangeBatch=changebatch, HostedZoneId=zone_id.lstrip('/hostedzone/'))
+    response = route53_client.change_resource_record_sets(ChangeBatch=changebatch, HostedZoneId=zone_id.lstrip(HOSTED_ZONE_PREFIX))
 
     print("{: <60} {}".format(response['ChangeInfo']['Id'], response['ChangeInfo']['Status']))
 
@@ -507,6 +526,7 @@ def aws_eks_describe_cluster(name):
 
 @awstools.group()
 def eks():
+    """ EKS related commands """
     pass
 
 @eks.command()
@@ -619,24 +639,6 @@ def list():
 
 # rclone autoconfig?
 
-# @s3.command()
-# @click.argument('bucket')
-# @click.argument('file')
-# @click.option('--public', is_flag=True, default=False, help='public ACL')
-# @click.option('--import-file',  help='file to read json data from', type=click.File('r'), default=sys.stdin)
-# def put(bucket):
-#     """put file"""
-#     global s3_client
-
-#     if not s3_client:
-#         init_s3_client()
-    
-#     if public:
-#         acl = 'public'
-#     else:
-#         acl = 'private'
-
-
 @s3.command()
 @click.argument('bucket')
 @click.option('--path', default='/', help='path', type=str)
@@ -696,6 +698,7 @@ def aws_secretsmanager_list():
 
 @awstools.group()
 def sm():
+    """ SM SecretManager related commands """
     pass
 
 @sm.command()
@@ -747,6 +750,7 @@ def aws_ssm_list_parameters():
 
 @awstools.group()
 def ssm():
+    """ SSM Systems Manager related commands """
     pass
 
 @ssm.command()
@@ -930,6 +934,7 @@ def aws_kms_get_key_policies(key):
 
 @awstools.group()
 def kms():
+    """ KMS related commands """
     pass
 
 @kms.command()
@@ -1022,6 +1027,7 @@ def aws_acm_list():
 
 @awstools.group()
 def acm():
+    """ ACM related commands """
     pass
 
 @acm.command()
@@ -1074,6 +1080,7 @@ def aws_acm_list_db_instances():
 
 @awstools.group()
 def rds():
+    """ RDS related commands """
     pass
 
 @rds.command()
