@@ -532,7 +532,7 @@ def eks():
 @eks.command()
 @click.argument('cluster')
 @click.option('--kubeconfig', default='', help='kubeconfig file', type=str)
-def set_context(cluster, kubeconfig):
+def update_kubeconfig(cluster, kubeconfig):
     """import EKS cluster context to kubectl"""
     global set_debug, set_profile, set_region, ip_to_use
     if cluster in aws_list_eks_clusters():
