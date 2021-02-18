@@ -213,12 +213,7 @@ def ssh(ctx, host, command):
         return
     sys.exit('Not found')
 
-# @ec2.command()
-# @click.argument('ami')
-# def show_ami(ami):
-#     image = aws_ec2_describe_ami(ami)
-
-#     # TODO
+# TODO: show_ami
 
 @ec2.command()
 @click.argument('ami')
