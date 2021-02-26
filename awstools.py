@@ -60,7 +60,7 @@ def awstools(profile, region, debug):
         os.environ["AWS_PROFILE"] = profile
     else:
         os.environ["AWS_PROFILE"] = set_profile
-    
+
     set_profile = profile
     set_region = region
     set_debug = debug
@@ -172,7 +172,7 @@ def search(ctx, name, running, connect):
                                 print_instance('-', instance[ip_to_use], instance['InstanceId'], instance['State']['Name'])
             except:
                 pass
-    
+
 @ec2.command()
 @click.argument('host')
 @click.argument('command', default='')
@@ -211,7 +211,6 @@ def ssh(ctx, host, command):
         if set_debug:
             print(str(e))
         return
-    sys.exit('Not found')
 
 # TODO: show_ami
 
@@ -244,16 +243,16 @@ def add_ami_launchpermissions(ami, account):
 
     if not ec2_client:
         init_ec2_client()
-    
+
     accounts = []
     for i in account:
         accounts.append(i)
 
     if accounts:
         response = ec2_client.modify_image_attribute(
-                                                ImageId=ami, 
-                                                OperationType='add', 
-                                                Attribute='launchPermission', 
+                                                ImageId=ami,
+                                                OperationType='add',
+                                                Attribute='launchPermission',
                                                 UserIds=accounts
                                             )
         print('HTTP '+str(response['ResponseMetadata']['HTTPStatusCode'])+' '+response['ResponseMetadata']['RequestId'])
@@ -266,7 +265,7 @@ def import_keypair(keypair, pub_file):
 
     if not ec2_client:
         init_ec2_client()
-    
+
     pub_bytes = bytes(pub_file.read(), 'utf-8')
 
     response = ec2_client.import_key_pair(
@@ -276,7 +275,117 @@ def import_keypair(keypair, pub_file):
                                         )
     print('HTTP '+str(response['ResponseMetadata']['HTTPStatusCode'])+' '+response['ResponseMetadata']['RequestId']+' KeyFingerprint: '+response['KeyFingerprint'])
 
+#
+# EC2 ASG
+#
 
+autoscaling_client = None
+
+def init_autoscaling_client():
+    global autoscaling_client
+
+    try:
+        if set_region:
+            autoscaling_client = boto3.client(service_name='autoscaling', region_name=set_region)
+        else:
+            autoscaling_client = boto3.client(service_name='autoscaling')
+    except Exception as e:
+        sys.exit('ERROR: '+str(e))
+
+def aws_search_ec2_asg_by_name(name):
+    global autoscaling_client
+    max_items = 50
+    records = []
+
+    if not autoscaling_client:
+        init_autoscaling_client()
+
+    batch = autoscaling_client.describe_auto_scaling_groups(MaxRecords=max_items)
+    #print(str(batch))
+    for asg in batch['AutoScalingGroups']:
+        if name in asg['AutoScalingGroupName']:
+            records.append(asg)
+    while 'NextToken' in batch.keys():
+        batch = autoscaling_client.describe_auto_scaling_groups(MaxRecords=max_items, NextToken=batch['NextToken'])
+
+        for asg in batch['AutoScalingGroups']:
+            if name in asg['AutoScalingGroupName']:
+                records.append(asg)
+    return records
+
+def aws_set_capacity_ec2_asg_by_name(name, max_size, min_size, capacity, honor_cooldown):
+    global autoscaling_client
+
+    if not autoscaling_client:
+        init_autoscaling_client()
+
+    try:
+        response = autoscaling_client.update_auto_scaling_group(
+                                                        AutoScalingGroupName=name,
+                                                        MinSize=min_size,
+                                                        MaxSize=max_size,
+                                                    )
+
+        if response['ResponseMetadata']['HTTPStatusCode']!=200:
+            return "ERROR update_auto_scaling_group: "+str(response['ResponseMetadata']['HTTPStatusCode'])
+
+        response = autoscaling_client.set_desired_capacity(
+                                                AutoScalingGroupName=name,
+                                                DesiredCapacity=capacity,
+                                                HonorCooldown=honor_cooldown
+                                            )
+
+        if response['ResponseMetadata']['HTTPStatusCode']!=200:
+            return "ERROR set_desired_capacity: "+str(response['ResponseMetadata']['HTTPStatusCode'])
+
+    except Exception as e:
+        return str(e)
+    
+    return "updated capacity"
+
+@ec2.group()
+def asg():
+    """ EC2 ASG related commands """
+    pass
+
+@asg.command()
+@click.argument('name', default='')
+@click.option('--no-title', is_flag=True, default=False, help='honor cooldown')
+def list(name, no_title):
+    # print(str(aws_search_ec2_asg_by_name(name)))
+
+    if not no_title:
+        print("{: <60} {: >20} {: >20} {: >20} {: >20}".format("AutoScalingGroupName", "DesiredCapacity", "MinSize", "MaxSize", "InstanceCount"))
+
+    for asg in aws_search_ec2_asg_by_name(name):
+        print("{: <60} {: >20} {: >20} {: >20} {: >20}".format(asg['AutoScalingGroupName'], asg['DesiredCapacity'], asg['MinSize'], asg['MaxSize'], len(asg['Instances']) ))
+
+@asg.command()
+@click.argument('name')
+@click.argument('capacity', type=int)
+@click.option('--max-size', default=-1, help='ASG max size', type=int)
+@click.option('--min-size', default=-1, help='ASG min size', type=int)
+@click.option('--honor-cooldown', is_flag=True, default=False, help='honor cooldown')
+def set_capacity(name, capacity, max_size, min_size, honor_cooldown):
+
+    records = aws_search_ec2_asg_by_name(name)
+
+    if not records:
+        sys.exit('ERROR: ASGs not found')
+
+    if max_size < 0:
+        set_max_size = capacity
+    else:
+        set_max_size = max_size
+
+    if min_size < 0:
+        set_min_size = capacity
+    else:
+        set_min_size = min_size
+
+    for asg in records:
+      response = aws_set_capacity_ec2_asg_by_name(asg['AutoScalingGroupName'], set_max_size, set_min_size, capacity, honor_cooldown)
+      print("{: <60} {}".format(asg['AutoScalingGroupName'], str(response)) )
 
 #
 # route53
@@ -380,7 +489,7 @@ def export_records(zone_id, include_not_importable, exclude_domain_aws_validatio
         zone_id = HOSTED_ZONE_PREFIX+zone_id
 
     records = aws_route53_list_resource_record_sets(zone_id)
-    
+
     zone_name = aws_route53_get_zone_name(zone_id)
 
     if not include_not_importable:
@@ -396,10 +505,9 @@ def export_records(zone_id, include_not_importable, exclude_domain_aws_validatio
         for record in records:
             if match_records not in record['Name']:
                 records_to_remove.append(record)
-                print(record['Name'])
         for record in records_to_remove:
             records.remove(record)
-    
+
     if exclude_domain_aws_validation or domain_aws_validation:
         aws_validation_records = []
         for record in records:
@@ -411,7 +519,7 @@ def export_records(zone_id, include_not_importable, exclude_domain_aws_validatio
                                 aws_validation_records.append(record)
                                 continue
                         except:
-                            pass  
+                            pass
             except:
                 pass
         if exclude_domain_aws_validation:
@@ -550,7 +658,7 @@ def update_kubeconfig(cluster, kubeconfig):
         except Exception as e:
             if set_debug:
                 print(str(e))
-            return   
+            return
 
 @eks.command()
 def list():
@@ -596,7 +704,7 @@ def init_s3_client():
 def s3(endpoint, access_key, secret):
     """ S3 utilities """
     global set_endpoint, set_access_key, set_secret
-    
+
     set_endpoint = endpoint
     set_access_key = access_key
     set_secret = secret
@@ -616,7 +724,7 @@ def create_bucket(bucket, region):
         response = s3_client.create_bucket(Bucket=bucket, CreateBucketConfiguration=location)
     else:
         response = s3_client.create_bucket(Bucket=bucket)
-    
+
     print('HTTP '+str(response['ResponseMetadata']['HTTPStatusCode'])+' '+response['ResponseMetadata']['RequestId'])
 
 @s3.command()
@@ -825,7 +933,7 @@ def put(import_file, rename, overwrite):
                                 Type=parameter_json['Type'],
                                 Overwrite=overwrite,
                             )
-    
+
     print(str(response['ResponseMetadata']['RequestId']))
 
 @ssm.command()
@@ -845,7 +953,7 @@ def set(parameter, value, description, overwrite):
                                 Type='SecureString',
                                 Overwrite=overwrite,
                             )
-    
+
     print(str(response['ResponseMetadata']['RequestId']))
 
 @ssm.command()
@@ -1017,7 +1125,7 @@ def aws_acm_list():
                                     )
 
         records += batch['CertificateSummaryList']
-    
+
     return records
 
 @awstools.group()
@@ -1052,25 +1160,29 @@ def init_rds_client():
         sys.exit('ERROR: '+str(e))
 
 
-def aws_acm_list_db_instances():
+def aws_acm_list_db_instances(name=None):
     global rds_client
 
     max_items = 100
+    records = []
 
     if not rds_client:
         init_rds_client()
 
     batch = rds_client.describe_db_instances(MaxRecords=max_items)
-    #print(str(batch))
-    records = batch['DBInstances']
+    for db in batch['DBInstances']:
+        if name in db['DBInstanceIdentifier']:
+            records.append(db)
     while 'Marker' in batch.keys():
         batch = rds_client.describe_db_instances(
                                         MaxRecords=max_items,
                                         Marker=batch['Marker']
                                     )
 
-        records += batch['DBInstances']
-    
+        for db in batch['DBInstances']:
+            if name in db['DBInstanceIdentifier']:
+                records.append(db)
+
     return records
 
 @awstools.group()
@@ -1079,13 +1191,50 @@ def rds():
     pass
 
 @rds.command()
-def list():
+@click.argument('name', default='', type=str)
+def list(name):
     """list dbs instances"""
 
-    dbinstances = aws_acm_list_db_instances()
+    dbinstances = aws_acm_list_db_instances(name)
 
     for dbinstance in dbinstances:
-        print("{: <50} {: <20} {}".format(dbinstance['DBInstanceIdentifier'], dbinstance['Engine'], str(dbinstance['DBParameterGroups'])))
+        # print(str(dbinstance))
+        print("{: <50} {: <20} {: <20} {}".format(dbinstance['DBInstanceIdentifier'], dbinstance['Engine'], dbinstance['DBInstanceStatus'], str(dbinstance['DBParameterGroups'])))
+
+@rds.group()
+def snapshots():
+    """ RDS snapshots related commands """
+    pass
+
+@snapshots.command()
+@click.argument('dbinstance', type=str)
+@click.argument('snapshotname', type=str)
+def create(dbinstance, snapshotname):
+    global rds_client
+
+    if not rds_client:
+        init_rds_client()
+
+    response = rds_client.create_db_snapshot(
+                                                DBSnapshotIdentifier=snapshotname,
+                                                DBInstanceIdentifier=dbinstance,
+                                            )
+    print('HTTP '+str(response['ResponseMetadata']['HTTPStatusCode'])+' '+response['ResponseMetadata']['RequestId'])
+    
+
+@snapshots.command()
+@click.argument('dbname', type=str)
+def show(dbname):
+    global rds_client
+
+    if not rds_client:
+        init_rds_client()
+
+
+    response = rds_client.describe_db_snapshots(DBInstanceIdentifier=dbname)
+    # print(str(response['DBSnapshots']))
+    for snapshot  in response['DBSnapshots']:
+        print("{: <50} {}".format(snapshot['DBSnapshotIdentifier'], snapshot['Status']))
 
 if __name__ == '__main__':
     load_defaults(os.path.join(os.getenv("HOME"), '.awstools/config'))
