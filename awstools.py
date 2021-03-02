@@ -5,6 +5,7 @@ from botocore.client import Config
 
 import subprocess
 import base64
+import random
 import boto3
 import click
 import json
@@ -82,6 +83,17 @@ def init_ec2_client():
     except Exception as e:
         sys.exit('ERROR: '+str(e))
 
+def aws_ec2_terminate_instances_by_id(instance_ids=[], dryrun=False):
+    global ec2_client
+
+    if not ec2_client:
+        init_ec2_client()
+
+    return ec2_client.terminate_instances(
+                                            InstanceIds=instance_ids,
+                                            DryRun=dryrun,
+                                        )
+
 def aws_search_ec2_instances_by_id(instance_id):
     global set_debug, set_profile, set_region
 
@@ -153,6 +165,7 @@ def search(ctx, name, running, connect):
 
     reservations = aws_search_ec2_instances_by_name(name=None)
 
+    # TODO: print status check
     for reservation in reservations:
         for instance in reservation["Instances"]:
             try:
@@ -176,8 +189,9 @@ def search(ctx, name, running, connect):
 @ec2.command()
 @click.argument('host')
 @click.argument('command', default='')
+@click.option('--any', is_flag=True, default=False, help='connect to any host that matches')
 @click.pass_context
-def ssh(ctx, host, command):
+def ssh(ctx, host, command, any):
     """ssh to a EC2 instance by name"""
     global set_debug, ip_to_use
 
@@ -195,11 +209,13 @@ def ssh(ctx, host, command):
             if instance['State']['Name']=='running':
                 candidates.append(instance[ip_to_use])
 
-    if len(candidates) > 1:
+    if len(candidates) > 1 and not any:
         if set_debug:
             print(str(candidates))
         ctx.invoke(search, name=host, running=True)
         return
+    elif len(candidates) > 1 and any:
+        random.shuffle(candidates)
 
     try:
         if command:
@@ -366,7 +382,8 @@ def list(name, no_title):
 @click.option('--max-size', default=-1, help='ASG max size', type=int)
 @click.option('--min-size', default=-1, help='ASG min size', type=int)
 @click.option('--honor-cooldown', is_flag=True, default=False, help='honor cooldown')
-def set_capacity(name, capacity, max_size, min_size, honor_cooldown):
+@click.option('--terminate', is_flag=True, default=False, help='terminate instances')
+def set_capacity(name, capacity, max_size, min_size, honor_cooldown, terminate):
 
     records = aws_search_ec2_asg_by_name(name)
 
@@ -384,8 +401,22 @@ def set_capacity(name, capacity, max_size, min_size, honor_cooldown):
         set_min_size = min_size
 
     for asg in records:
-      response = aws_set_capacity_ec2_asg_by_name(asg['AutoScalingGroupName'], set_max_size, set_min_size, capacity, honor_cooldown)
-      print("{: <60} {}".format(asg['AutoScalingGroupName'], str(response)) )
+        response = aws_set_capacity_ec2_asg_by_name(asg['AutoScalingGroupName'], set_max_size, set_min_size, capacity, honor_cooldown)
+
+        if terminate and capacity==0:
+            instances_to_terminate = []
+
+            for instance in asg['Instances']:
+                instances_to_terminate.append(instance['InstanceId'])
+            
+            if instances_to_terminate:
+                termination_response = aws_ec2_terminate_instances_by_id(instances_to_terminate)
+                print("{: <60} {: <30} {}".format(asg['AutoScalingGroupName'], str(response), str(termination_response['ResponseMetadata']['RequestId'])) )
+            else:
+                print("{: <60} {}".format(asg['AutoScalingGroupName'], str(response)) )    
+        else:
+            print("{: <60} {}".format(asg['AutoScalingGroupName'], str(response)) )
+
 
 #
 # route53
@@ -1221,7 +1252,6 @@ def create(dbinstance, snapshotname):
                                             )
     print('HTTP '+str(response['ResponseMetadata']['HTTPStatusCode'])+' '+response['ResponseMetadata']['RequestId'])
     
-
 @snapshots.command()
 @click.argument('dbname', type=str)
 def show(dbname):
@@ -1235,6 +1265,91 @@ def show(dbname):
     # print(str(response['DBSnapshots']))
     for snapshot  in response['DBSnapshots']:
         print("{: <50} {}".format(snapshot['DBSnapshotIdentifier'], snapshot['Status']))
+
+#
+# elasticache
+#
+
+elasticache_client = None
+
+def init_elasticache_client():
+    global elasticache_client
+
+    try:
+        if set_region:
+            elasticache_client = boto3.client(service_name='elasticache', region_name=set_region)
+        else:
+            elasticache_client = boto3.client(service_name='elasticache')
+    except Exception as e:
+        sys.exit('ERROR: '+str(e))
+
+def aws_elasticache_list_cluster_instances(name=None, nodeinfo=False):
+    global elasticache_client
+
+    max_items = 100
+    records = []
+
+    if not elasticache_client:
+        init_elasticache_client()
+
+    batch = elasticache_client.describe_cache_clusters(MaxRecords=max_items, ShowCacheNodeInfo=nodeinfo)
+    for db in batch['CacheClusters']:
+        if name in db['CacheClusterId']:
+            records.append(db)
+    while 'Marker' in batch.keys():
+        batch = rds_client.describe_db_instances(
+                                        MaxRecords=max_items,
+                                        ShowCacheNodeInfo=nodeinfo,
+                                        Marker=batch['Marker']
+                                    )
+
+        for db in batch['CacheClusters']:
+            if name in db['CacheClusterId']:
+                records.append(db)
+
+    return records
+
+@awstools.group()
+def elasticache():
+    """ elasticache related commands """
+    pass
+
+@elasticache.command()
+@click.argument('name', default='', type=str)
+def list(name):
+    """list elasticache clusters"""
+
+    instances = aws_elasticache_list_cluster_instances(name)
+
+    for instance in instances:
+        # print(str(instance))
+        print("{: <50} {: <20} {: <20} {}".format(instance['CacheClusterId'], instance['Engine'], instance['CacheClusterStatus'], str(instance['NumCacheNodes'])))
+
+
+@elasticache.command()
+@click.argument('name', default='', type=str)
+def reboot(name):
+    """reboot elasticache clusters"""
+    global elasticache_client
+
+    if not elasticache_client:
+        init_elasticache_client()
+
+    instances = aws_elasticache_list_cluster_instances(name=name, nodeinfo=True)
+
+    for instance in instances:
+        nodes = []
+        if instance['CacheClusterStatus'] in ['available', 'incompatible-parameters', 'snapshotting']:
+            for cachenode in instance['CacheNodes']:
+                nodes.append(cachenode['CacheNodeId'])
+            response = elasticache_client.reboot_cache_cluster(
+                                                    CacheClusterId=instance['CacheClusterId'],
+                                                    CacheNodeIdsToReboot=nodes
+                                                )
+            print("{: <50} {}".format(instance['CacheClusterId'], response['CacheCluster']['CacheClusterStatus']))
+        else:
+            print("{: <50} {}".format(instance['CacheClusterId'], "unable to reboot; current status is: "+instance['CacheClusterStatus']))
+
 
 if __name__ == '__main__':
     load_defaults(os.path.join(os.getenv("HOME"), '.awstools/config'))
