@@ -132,13 +132,6 @@ def aws_search_ec2_instances_by_name(name):
 
     return response["Reservations"]
 
-def aws_ec2_describe_ami(ami):
-
-    ec2 = boto3.resource('ec2')
-    image = ec2.Image(ami)
-
-    return image
-
 def print_instance(instance_name, instance_id, instance_ip, instance_state=None):
     if instance_state:
         print("{: <60} {: <20} {: <20} {}".format(instance_name, instance_ip, instance_id, instance_state))
@@ -228,11 +221,27 @@ def ssh(ctx, host, command, any):
             print(str(e))
         return
 
-# TODO: show_ami
+def ec2_ami_describe(ami):
+    global ec2_client
 
-@ec2.command()
+    if not ec2_client:
+        init_ec2_client()
+
+    response = ec2_client.describe_images(ImageIds=[ami])
+
+    try:
+        return response['Images'][0]
+    except:
+        return None
+
+@ec2.group()
+def ami():
+    """ EC2 AMI related commands """
+    pass
+
+@ami.command()
 @click.argument('ami')
-def show_ami_launchpermissions(ami):
+def launchpermissions(ami):
     global ec2_client
 
     if not ec2_client:
@@ -243,7 +252,14 @@ def show_ami_launchpermissions(ami):
                                                     ImageId=ami,
                                                     DryRun=False
                                                 )
-    # print(str(response['LaunchPermissions']))
+
+    ami = ec2_ami_describe(ami)
+
+    if not ami:
+        return
+    else:
+        # print(str(ami))
+        print("{: <15} {}".format('Owner', ami['OwnerId']))
 
     for launchpermission in response['LaunchPermissions']:
         if 'UserId' in launchpermission.keys():
@@ -251,10 +267,10 @@ def show_ami_launchpermissions(ami):
         if 'Group' in launchpermission.keys():
             print("{: <15} {}".format('Group', launchpermission['Group']))
 
-@ec2.command()
+@ami.command()
 @click.argument('ami')
 @click.option('--account',  multiple=True, default=[], help='Add account to LaunchPermissions')
-def add_ami_launchpermissions(ami, account):
+def add_launchpermissions(ami, account):
     global ec2_client
 
     if not ec2_client:
