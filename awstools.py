@@ -132,11 +132,11 @@ def aws_search_ec2_instances_by_name(name):
 
     return response["Reservations"]
 
-def print_instance(instance_name, instance_id, instance_ip, instance_state=None):
+def print_instance(instance_name, instance_id, instance_ip, instance_launchtime, instance_keyname, instance_state=None):
     if instance_state:
-        print("{: <60} {: <20} {: <20} {}".format(instance_name, instance_ip, instance_id, instance_state))
+        print("{: <60} {: <20} {: <20} {: <20} {}    {}".format(instance_name, instance_ip, instance_id, instance_state, instance_launchtime, instance_keyname))
     else:
-        print("{: <60} {: <20} {}".format(instance_name, instance_ip, instance_id ))
+        print("{: <60} {: <20} {: <20} {}    {}".format(instance_name, instance_ip, instance_id, instance_launchtime, instance_keyname ))
 
 @awstools.group()
 def ec2():
@@ -168,14 +168,14 @@ def search(ctx, name, running, connect):
                         name_found = True
                         if name in tag['Value'] or not name:
                             if running and instance['State']['Name']=='running':
-                                print_instance(tag['Value'], instance[ip_to_use], instance['InstanceId'])
+                                print_instance(tag['Value'], instance[ip_to_use], instance['InstanceId'], instance['LaunchTime'], instance['KeyName'])
                             else:
-                                print_instance(tag['Value'], instance[ip_to_use], instance['InstanceId'], instance['State']['Name'])
+                                print_instance(tag['Value'], instance[ip_to_use], instance['InstanceId'], instance['LaunchTime'], instance['KeyName'], instance['State']['Name'])
                 if not name and not name_found:
                             if running and instance['State']['Name']=='running':
-                                print_instance('-', instance[ip_to_use], instance['InstanceId'])
+                                print_instance('-', instance[ip_to_use], instance['InstanceId'], instance['LaunchTime'], instance['KeyName'])
                             else:
-                                print_instance('-', instance[ip_to_use], instance['InstanceId'], instance['State']['Name'])
+                                print_instance('-', instance[ip_to_use], instance['InstanceId'], instance['LaunchTime'], instance['KeyName'], instance['State']['Name'])
             except:
                 pass
 
