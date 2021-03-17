@@ -179,6 +179,8 @@ def search(ctx, name, running, connect):
             except:
                 pass
 
+# TODO cssh
+
 @ec2.command()
 @click.argument('host')
 @click.argument('command', default='')
