@@ -143,6 +143,15 @@ def ec2():
     """ EC2 related commands """
     pass
 
+def ec2_get_instance_name(instance):
+    try:   
+        for tag in instance['Tags']:
+            if tag['Key']=='Name':
+                return tag['Value']
+        return '-'
+    except:
+        return '-'            
+
 @ec2.command()
 @click.argument('name', default='')
 @click.option('--running', is_flag=True, default=False, help='show only running instances')
@@ -158,10 +167,10 @@ def search(ctx, name, running, connect):
 
     reservations = aws_search_ec2_instances_by_name(name=None)
 
-    # TODO: print status check
     for reservation in reservations:
         for instance in reservation["Instances"]:
             try:
+                # TODO: refactor to use ec2_get_instance_name
                 name_found = False
                 for tag in instance['Tags']:
                     if tag['Key']=='Name':
@@ -178,8 +187,6 @@ def search(ctx, name, running, connect):
                                 print_instance('-', instance[ip_to_use], instance['InstanceId'], instance['LaunchTime'], instance['KeyName'], instance['State']['Name'])
             except:
                 pass
-
-# TODO cssh
 
 @ec2.command()
 @click.argument('host')
@@ -222,6 +229,29 @@ def ssh(ctx, host, command, any):
         if set_debug:
             print(str(e))
         return
+
+@ec2.command()
+@click.argument('host')
+@click.argument('command')
+@click.option('--no-instance-id', is_flag=True, default=False, help='connect to any host that matches')
+def cssh(host, command, no_instance_id):
+    global set_debug, ip_to_use
+
+    if host.startswith('i-'):
+        reservations = aws_search_ec2_instances_by_id(host)
+    else:
+        reservations = aws_search_ec2_instances_by_name(host)
+
+    if not reservations:
+        reservations = aws_search_ec2_instances_by_name('*'+host+'*')
+
+    for reservation in reservations:
+        for instance in reservation["Instances"]:
+            if instance['State']['Name']=='running':
+                if not no_instance_id:
+                    print("{: <60} {}".format(ec2_get_instance_name(instance), instance['InstanceId']))
+                subprocess.check_call(['ssh', instance[ip_to_use], command])
+
 
 def ec2_ami_describe(ami):
     global ec2_client
@@ -384,7 +414,7 @@ def asg():
 
 @asg.command()
 @click.argument('name', default='')
-@click.option('--no-title', is_flag=True, default=False, help='honor cooldown')
+@click.option('--no-title', is_flag=True, default=False, help='don\'t show column description')
 def list(name, no_title):
     # print(str(aws_search_ec2_asg_by_name(name)))
 
@@ -393,6 +423,15 @@ def list(name, no_title):
 
     for asg in aws_search_ec2_asg_by_name(name):
         print("{: <60} {: >20} {: >20} {: >20} {: >20}".format(asg['AutoScalingGroupName'], asg['DesiredCapacity'], asg['MinSize'], asg['MaxSize'], len(asg['Instances']) ))
+
+@asg.command()
+@click.argument('name', default='')
+def suspended_processes(name):
+    for asg in aws_search_ec2_asg_by_name(name):
+        list_sp = []
+        for sp in asg['SuspendedProcesses']:
+            list_sp.append(sp['ProcessName'])
+        print("{: <30} {}".format(asg['AutoScalingGroupName'], " ".join(list_sp)) )
 
 @asg.command()
 @click.argument('name')
