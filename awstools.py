@@ -221,10 +221,10 @@ def ssh(ctx, host, command, any):
 
     try:
         if command:
-            subprocess.check_call(['ssh', candidates[0], command])
+            ret = subprocess.check_call(['ssh', candidates[0], command])
         else:
-            subprocess.check_call(['ssh', candidates[0]])
-        return
+            ret = subprocess.check_call(['ssh', candidates[0]])
+        sys.exit(ret)
     except Exception as e:
         if set_debug:
             print(str(e))
@@ -250,7 +250,11 @@ def cssh(host, command, no_instance_id):
             if instance['State']['Name']=='running':
                 if not no_instance_id:
                     print("{: <60} {}".format(ec2_get_instance_name(instance), instance['InstanceId']))
-                subprocess.check_call(['ssh', instance[ip_to_use], command])
+                try:
+                    subprocess.check_call(['ssh', instance[ip_to_use], command])
+                except Exception as e:
+                    if set_debug:
+                        print(str(e))
 
 
 def ec2_ami_describe(ami):
