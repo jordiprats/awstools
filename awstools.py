@@ -277,24 +277,47 @@ def ami():
 
 @ami.command()
 @click.argument('ami')
-def launchpermissions(ami):
+@click.option('--no-title', is_flag=True, default=False, help='don\'t show column description')
+def show(ami, no_title):
     global ec2_client
 
     if not ec2_client:
         init_ec2_client()
 
-    response = ec2_client.describe_image_attribute(
-                                                    Attribute='launchPermission',
-                                                    ImageId=ami,
-                                                    DryRun=False
-                                                )
-
-    ami = ec2_ami_describe(ami)
+    try:
+        ami = ec2_ami_describe(ami)
+    except Exception as e:
+        sys.exit("ERROR - "+str(e))
 
     if not ami:
         return
     else:
-        # print(str(ami))
+        if not no_title:
+            print("{: <90} {: <25} {: <20} {: <10} {: <10} {: <15} {}".format("Name", "ImageId", "Owner", "Public", "Arch", "Platform", "State"))
+
+        print("{: <90} {: <25} {: <20} {: <10} {: <10} {: <15} {}".format(ami['Name'], ami['ImageId'], ami['OwnerId'], ami['Public'], ami['Architecture'], ami['PlatformDetails'], ami['State']))
+
+@ami.command()
+@click.argument('ami')
+def launch_permissions(ami):
+    global ec2_client
+
+    if not ec2_client:
+        init_ec2_client()
+
+    try:
+        response = ec2_client.describe_image_attribute(
+                                                        Attribute='launchPermission',
+                                                        ImageId=ami,
+                                                        DryRun=False
+                                                    )   
+        ami = ec2_ami_describe(ami)
+    except Exception as e:
+        sys.exit("ERROR - "+str(e))
+
+    if not ami:
+        return
+    else:
         print("{: <15} {}".format('Owner', ami['OwnerId']))
 
     for launchpermission in response['LaunchPermissions']:
@@ -369,7 +392,7 @@ def aws_search_ec2_asg_by_name(name):
         init_autoscaling_client()
 
     batch = autoscaling_client.describe_auto_scaling_groups(MaxRecords=max_items)
-    #print(str(batch))
+    
     for asg in batch['AutoScalingGroups']:
         if name in asg['AutoScalingGroupName']:
             records.append(asg)
@@ -420,7 +443,7 @@ def asg():
 @click.argument('name', default='')
 @click.option('--no-title', is_flag=True, default=False, help='don\'t show column description')
 def list(name, no_title):
-    # print(str(aws_search_ec2_asg_by_name(name)))
+    
 
     if not no_title:
         print("{: <60} {: >20} {: >20} {: >20} {: >20}".format("AutoScalingGroupName", "DesiredCapacity", "MinSize", "MaxSize", "InstanceCount"))
@@ -880,7 +903,7 @@ def aws_secretsmanager_list():
         init_sm_client()
 
     batch = sm_client.list_secrets(MaxResults=max_items)
-    #print(str(batch))
+    
     records = batch['SecretList']
     while 'NextToken' in batch.keys():
         batch = sm_client.list_secrets(
@@ -932,7 +955,7 @@ def aws_ssm_list_parameters():
         init_ssm_client()
 
     batch = ssm_client.describe_parameters(MaxResults=max_items)
-    #print(str(batch))
+    
     records = batch['Parameters']
     while 'NextToken' in batch.keys():
         batch = ssm_client.describe_parameters(
@@ -953,7 +976,7 @@ def list():
     """list parameters"""
 
     for parameter in aws_ssm_list_parameters():
-        #print(str(parameter))
+        
         if 'Description' in parameter.keys():
             print("{: <60} {: <15} {: <80} {}".format(parameter['Name'], parameter['Type'], parameter['Description'], str(parameter['LastModifiedDate'])))
         else:
@@ -1090,7 +1113,7 @@ def aws_kms_list():
         init_kms_client()
 
     batch = kms_client.list_keys(Limit=max_items)
-    #print(str(batch))
+    
     key_ids = batch['Keys']
     while 'NextMarker' in batch.keys():
         batch = kms_client.list_keys(
@@ -1115,7 +1138,7 @@ def aws_kms_get_key_policies(key):
         init_kms_client()
 
     batch = kms_client.list_key_policies(KeyId=key, Limit=max_items)
-    #print(str(batch))
+    
     records = batch['PolicyNames']
     while 'NextMarker' in batch.keys():
         batch = kms_client.list_keys(
@@ -1136,7 +1159,7 @@ def kms():
 def list():
     """list keys"""
     for key in aws_kms_list():
-        #print(str(key))
+        
         print("{: <50} {}".format(key['KeyId'], key['Description']))
 
 @kms.command()
@@ -1208,7 +1231,7 @@ def aws_acm_list():
         init_acm_client()
 
     batch = acm_client.list_certificates(MaxItems=max_items)
-    #print(str(batch))
+    
     records = batch['CertificateSummaryList']
     while 'NextToken' in batch.keys():
         batch = acm_client.list_certificates(
@@ -1290,7 +1313,7 @@ def list(name):
     dbinstances = aws_acm_list_db_instances(name)
 
     for dbinstance in dbinstances:
-        # print(str(dbinstance))
+        
         print("{: <50} {: <20} {: <20} {}".format(dbinstance['DBInstanceIdentifier'], dbinstance['Engine'], dbinstance['DBInstanceStatus'], str(dbinstance['DBParameterGroups'])))
 
 @rds.group()
@@ -1323,7 +1346,7 @@ def show(dbname):
 
 
     response = rds_client.describe_db_snapshots(DBInstanceIdentifier=dbname)
-    # print(str(response['DBSnapshots']))
+    
     for snapshot  in response['DBSnapshots']:
         print("{: <50} {}".format(snapshot['DBSnapshotIdentifier'], snapshot['Status']))
 
@@ -1383,7 +1406,7 @@ def list(name):
     instances = aws_elasticache_list_cluster_instances(name)
 
     for instance in instances:
-        # print(str(instance))
+        
         print("{: <50} {: <20} {: <20} {}".format(instance['CacheClusterId'], instance['Engine'], instance['CacheClusterStatus'], str(instance['NumCacheNodes'])))
 
 
