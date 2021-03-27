@@ -152,41 +152,39 @@ def ec2_get_instance_name(instance):
     except:
         return '-'            
 
+def ec2_get_ip(instance):
+    global set_debug, ip_to_use
+    try:   
+        return instance[ip_to_use]
+    except:
+        return '-'
+
 @ec2.command()
 @click.argument('name', default='')
-@click.option('--running', is_flag=True, default=False, help='show only running instances')
+@click.option('--all', is_flag=True, default=False, help='show all instances - default is to list just running instances')
 @click.option('--connect', is_flag=True, default=False, help='connect to this instance')
 @click.pass_context
-def search(ctx, name, running, connect):
-    """search EC2 instances that it's names contains a string"""
-    global set_debug, ip_to_use
+def search(ctx, name, all, connect):
+    """search EC2 running instances"""
+    global set_debug
 
     if connect:
         ctx.invoke(ssh, host=name)
         return
 
-    reservations = aws_search_ec2_instances_by_name(name=None)
+    if name.startswith('i-'):
+        reservations = aws_search_ec2_instances_by_id(name)
+    else:
+        reservations = aws_search_ec2_instances_by_name('*'+name+'*')
 
     for reservation in reservations:
         for instance in reservation["Instances"]:
-            try:
-                # TODO: refactor to use ec2_get_instance_name
-                name_found = False
-                for tag in instance['Tags']:
-                    if tag['Key']=='Name':
-                        name_found = True
-                        if name in tag['Value'] or not name:
-                            if running and instance['State']['Name']=='running':
-                                print_instance(tag['Value'], instance[ip_to_use], instance['InstanceId'], instance['LaunchTime'], instance['KeyName'])
-                            else:
-                                print_instance(tag['Value'], instance[ip_to_use], instance['InstanceId'], instance['LaunchTime'], instance['KeyName'], instance['State']['Name'])
-                if not name and not name_found:
-                            if running and instance['State']['Name']=='running':
-                                print_instance('-', instance[ip_to_use], instance['InstanceId'], instance['LaunchTime'], instance['KeyName'])
-                            else:
-                                print_instance('-', instance[ip_to_use], instance['InstanceId'], instance['LaunchTime'], instance['KeyName'], instance['State']['Name'])
-            except:
-                pass
+            #print(str(instance))
+            if all:
+                print_instance(ec2_get_instance_name(instance), ec2_get_ip(instance), instance['InstanceId'], instance['LaunchTime'], instance['KeyName'], instance['State']['Name'])
+            else:
+                if instance['State']['Name']=='running':
+                    print_instance(ec2_get_instance_name(instance), ec2_get_ip(instance), instance['InstanceId'], instance['LaunchTime'], instance['KeyName'])
 
 @ec2.command()
 @click.argument('host')
@@ -443,8 +441,6 @@ def asg():
 @click.argument('name', default='')
 @click.option('--no-title', is_flag=True, default=False, help='don\'t show column description')
 def list(name, no_title):
-    
-
     if not no_title:
         print("{: <60} {: >20} {: >20} {: >20} {: >20}".format("AutoScalingGroupName", "DesiredCapacity", "MinSize", "MaxSize", "InstanceCount"))
 
@@ -494,13 +490,64 @@ def set_capacity(name, capacity, max_size, min_size, honor_cooldown, terminate):
                 instances_to_terminate.append(instance['InstanceId'])
             
             if instances_to_terminate:
-                termination_response = aws_ec2_terminate_instances_by_id(instances_to_terminate)
+                try:
+                    termination_response = aws_ec2_terminate_instances_by_id(instances_to_terminate)
+                except Exception as e:
+                    termination_response['ResponseMetadata']['RequestId'] = e
                 print("{: <60} {: <30} {}".format(asg['AutoScalingGroupName'], str(response), str(termination_response['ResponseMetadata']['RequestId'])) )
             else:
                 print("{: <60} {}".format(asg['AutoScalingGroupName'], str(response)) )    
         else:
             print("{: <60} {}".format(asg['AutoScalingGroupName'], str(response)) )
 
+#
+# EC2 SG
+#
+
+@ec2.group()
+def sg():
+    """ EC2 SG related commands """
+    pass
+
+
+@sg.command()
+@click.argument('name')
+def list(name):
+    """ list SGs"""
+    global ec2_client
+
+    if not ec2_client:
+        init_ec2_client()
+
+    paginator = ec2_client.get_paginator('describe_security_groups')
+    dsg_iterator = paginator.paginate()
+
+    for page in dsg_iterator:
+        for sg in page['SecurityGroups']:
+            if name in sg['GroupName'] or name == sg['GroupId']:
+                # print(str(sg))
+                print("{: <40} {: <30} {}".format(sg['GroupName'], sg['GroupId'], sg['Description']) )
+
+@sg.command()
+@click.argument('name')
+def delete_entangled(name):
+    """ delete entangled SGs"""
+    global ec2_client
+
+    if not ec2_client:
+        init_ec2_client()
+
+    
+    paginator = ec2_client.get_paginator('describe_security_groups')
+    dsg_iterator = paginator.paginate()
+
+    for page in dsg_iterator:
+        for sg in page['SecurityGroups']:
+            if name in sg['GroupName'] or name == sg['GroupId']:
+                response_in = ec2_client.revoke_security_group_ingress(SourceSecurityGroupName=sg['GroupName'], IpPermissions=sg['IpPermissions'])
+                response_e = ec2_client.revoke_security_group_egress(SourceSecurityGroupName=sg['GroupName'], IpPermissions=sg['IpPermissionsEgress'])
+                response_sg = ec2_client.delete_security_group(GroupId=sg['GroupId'])
+                print("{: <40} {: <30} {: <10} {: <10} {}".format(sg['GroupName'], sg['GroupId'], response_in['Return'], response_e['Return'], response_sg['ResponseMetadata']['RequestId']) )
 
 #
 # route53
