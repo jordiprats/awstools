@@ -212,7 +212,7 @@ def ssh(ctx, host, command, any):
     if len(candidates) > 1 and not any:
         if set_debug:
             print(str(candidates))
-        ctx.invoke(search, name=host, running=True)
+        ctx.invoke(search, name=host, all=False)
         return
     elif len(candidates) > 1 and any:
         random.shuffle(candidates)
