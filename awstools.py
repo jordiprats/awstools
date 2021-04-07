@@ -537,7 +537,6 @@ def delete_entangled(name):
     if not ec2_client:
         init_ec2_client()
 
-    
     paginator = ec2_client.get_paginator('describe_security_groups')
     dsg_iterator = paginator.paginate()
 
@@ -1023,7 +1022,6 @@ def list():
     """list parameters"""
 
     for parameter in aws_ssm_list_parameters():
-        
         if 'Description' in parameter.keys():
             print("{: <60} {: <15} {: <80} {}".format(parameter['Name'], parameter['Type'], parameter['Description'], str(parameter['LastModifiedDate'])))
         else:
@@ -1360,7 +1358,6 @@ def list(name):
     dbinstances = aws_acm_list_db_instances(name)
 
     for dbinstance in dbinstances:
-        
         print("{: <50} {: <20} {: <20} {}".format(dbinstance['DBInstanceIdentifier'], dbinstance['Engine'], dbinstance['DBInstanceStatus'], str(dbinstance['DBParameterGroups'])))
 
 @rds.group()
@@ -1390,7 +1387,6 @@ def show(dbname):
 
     if not rds_client:
         init_rds_client()
-
 
     response = rds_client.describe_db_snapshots(DBInstanceIdentifier=dbname)
     
@@ -1453,7 +1449,6 @@ def list(name):
     instances = aws_elasticache_list_cluster_instances(name)
 
     for instance in instances:
-        
         print("{: <50} {: <20} {: <20} {}".format(instance['CacheClusterId'], instance['Engine'], instance['CacheClusterStatus'], str(instance['NumCacheNodes'])))
 
 
