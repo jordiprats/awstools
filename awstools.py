@@ -163,13 +163,14 @@ def ec2_get_ip(instance):
 @click.argument('name', default='')
 @click.option('--all', is_flag=True, default=False, help='show all instances - default is to list just running instances')
 @click.option('--connect', is_flag=True, default=False, help='connect to this instance')
+@click.option('--any', is_flag=True, default=False, help='connect to any host that matches')
 @click.pass_context
-def search(ctx, name, all, connect):
+def search(ctx, name, all, connect, any):
     """search EC2 running instances"""
     global set_debug
 
     if connect:
-        ctx.invoke(ssh, host=name)
+        ctx.invoke(ssh, host=name, any=any)
         return
 
     if name.startswith('i-'):
@@ -432,6 +433,20 @@ def aws_set_capacity_ec2_asg_by_name(name, max_size, min_size, capacity, honor_c
     
     return "updated capacity"
 
+def aws_asg_instance_refresh_by_name(name):
+    global autoscaling_client
+
+    if not autoscaling_client:
+        init_autoscaling_client()
+
+    try:
+        response = autoscaling_client.start_instance_refresh(AutoScalingGroupName=name)
+
+        return response['InstanceRefreshId']
+
+    except Exception as e:
+        return str(e)
+
 @ec2.group()
 def asg():
     """ EC2 ASG related commands """
@@ -455,6 +470,75 @@ def suspended_processes(name):
         for sp in asg['SuspendedProcesses']:
             list_sp.append(sp['ProcessName'])
         print("{: <30} {}".format(asg['AutoScalingGroupName'], " ".join(list_sp)) )
+
+# filter non-relevant?
+@asg.command()
+@click.argument('name')
+@click.option('--no-title', is_flag=True, default=False, help='don\'t show column description')
+def list_instance_refreshes(name, no_title):
+    global autoscaling_client
+
+    records = aws_search_ec2_asg_by_name(name)
+
+    output_format = "{: <40} {: <40} {: <20} {: <27} {: <27} {: >20} {}"
+
+    if not records:
+        sys.exit('ERROR: ASGs not found')
+
+    if not autoscaling_client:
+        init_autoscaling_client()
+
+    if not no_title:
+        print(output_format.format("AutoScalingGroupName", "InstanceRefreshId", "Status", "StartTime", "EndTime", 'InstancesToUpdate', 'StatusReason'))
+
+    for asg in records:
+        response = autoscaling_client.describe_instance_refreshes(AutoScalingGroupName=asg['AutoScalingGroupName'])    
+
+        for refresh in response['InstanceRefreshes']:
+            try:
+                start_time = str(refresh['StartTime'])
+            except:
+                start_time = ""
+
+            try:
+                end_time = str(refresh['EndTime'])
+            except:
+                end_time = ""
+
+            try:
+                status = refresh['Status']
+            except:
+                status = ""
+
+            try:
+                status_reason = refresh['StatusReason']
+            except:
+                status_reason = ""
+
+            try:
+                instances_to_update = str(refresh['InstancesToUpdate'])
+            except:
+                instances_to_update = ""
+
+            try:
+                print(output_format.format(asg['AutoScalingGroupName'], refresh['InstanceRefreshId'], status, start_time, end_time, instances_to_update, status_reason) )
+            except:
+                print(output_format.format(asg['AutoScalingGroupName'], '-', '-', '-', '-', '-', '-') )
+
+
+
+@asg.command()
+@click.argument('name')
+def start_instance_refresh(name):
+    records = aws_search_ec2_asg_by_name(name)
+
+    if not records:
+        sys.exit('ERROR: ASGs not found')
+
+    for asg in records:
+        response = aws_asg_instance_refresh_by_name(asg['AutoScalingGroupName'])
+
+        print("{: <60} {}".format(asg['AutoScalingGroupName'], str(response)) )
 
 @asg.command()
 @click.argument('name')
