@@ -985,8 +985,6 @@ def list():
     for bucket in response['Buckets']:
         print("{: <60} {}".format(bucket['Name'], str(bucket['CreationDate'])))
 
-# rclone autoconfig?
-
 @s3.command()
 @click.argument('bucket')
 @click.option('--path', default='/', help='path', type=str)
@@ -1006,6 +1004,60 @@ def ls(bucket, path):
     else:
         for bucket_object in s3.list_objects_v2(Bucket=bucket, Prefix = path, MaxKeys=100 )['Contents']:
             print("{: <60} {}".format(bucket_object['Key'], str(bucket_object['LastModified'])))
+
+@s3.command()
+@click.argument('bucket')
+@click.option('--sure', is_flag=True, default=False, help='shut up BITCH! I known what I\'m doing')
+def purge(bucket, sure):
+    """delete all versions of a bucket"""
+    global s3_client
+
+    if sure:
+        if not s3_client:
+            init_s3_client()
+
+        batch = s3_client.list_object_versions(MaxKeys=1000, Bucket=bucket)
+        str_out = "{: <20} {: <20} {}"
+        print(str_out.format('Requested', 'Deleted', 'Errors'))
+
+        while batch['IsTruncated']:
+
+            objects_to_delete = []
+            for version in batch['Versions']:
+                delete_candidate = {}
+                delete_candidate['Key'] = version['Key']
+                delete_candidate['VersionId'] = version['VersionId']
+
+                objects_to_delete.append(delete_candidate)
+
+            response = s3_client.delete_objects(
+                                                Bucket=bucket,
+                                                Delete={
+                                                    'Objects': objects_to_delete
+                                                },
+                                                )
+            try:
+                delete_deleted = len(response['Deleted'])
+            except:
+                delete_deleted = 0
+            try:
+                delete_errors = len(response['Errors'])
+            except:
+                delete_errors = 0
+            print(str_out.format(len(objects_to_delete), delete_deleted, delete_errors))
+
+
+            batch = s3_client.list_object_versions(
+                                            MaxKeys=1000, 
+                                            Bucket=bucket,
+                                            KeyMarker=batch['NextKeyMarker']
+                                            )
+
+        response = s3_client.delete_bucket(Bucket=bucket)
+
+        print(str(response['ResponseMetadata']['RequestId']))
+    else:
+        print("Are you sure you want to delete "+bucket+", all it's contents AND all it's versions?")
 
 #
 # SM SecretManager
