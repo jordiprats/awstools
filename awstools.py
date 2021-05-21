@@ -365,6 +365,24 @@ def import_keypair(keypair, pub_file):
                                         )
     print('HTTP '+str(response['ResponseMetadata']['HTTPStatusCode'])+' '+response['ResponseMetadata']['RequestId']+' KeyFingerprint: '+response['KeyFingerprint'])
 
+@ec2.command()
+@click.argument('instance_id')
+def instance_tags(instance_id,):
+    """show instance tags"""
+    global set_debug, ip_to_use
+
+    if instance_id.startswith('i-'):
+        reservations = aws_search_ec2_instances_by_id(instance_id)
+
+        try:
+            tags = reservations[0]['Instances'][0]['Tags']
+            get_key_value = lambda obj: obj['Key']
+            for tag in sorted(tags, key=get_key_value, reverse=False):
+                print("{: <60} = {}".format(tag['Key'], tag['Value']))
+        except:
+            print("Error retrieving tags")
+    else:
+        print("please use instance-id")
 #
 # EC2 ASG
 #
