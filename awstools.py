@@ -1038,16 +1038,24 @@ def purge(bucket, sure):
         str_out = "{: <20} {: <20} {}"
         print(str_out.format('Requested', 'Deleted', 'Errors'))
 
-        while batch['IsTruncated']:
+        while True:
 
             objects_to_delete = []
-            for version in batch['Versions']:
-                delete_candidate = {}
-                delete_candidate['Key'] = version['Key']
-                delete_candidate['VersionId'] = version['VersionId']
 
-                objects_to_delete.append(delete_candidate)
+            if 'Versions' in batch.keys():
+                for version in batch['Versions']:
+                    delete_candidate = {}
+                    delete_candidate['Key'] = version['Key']
+                    delete_candidate['VersionId'] = version['VersionId']
 
+                    objects_to_delete.append(delete_candidate)
+            if 'DeleteMarkers' in batch.keys():
+                for version in batch['DeleteMarkers']:
+                    delete_candidate = {}
+                    delete_candidate['Key'] = version['Key']
+                    delete_candidate['VersionId'] = version['VersionId']
+
+                    objects_to_delete.append(delete_candidate)
             response = s3_client.delete_objects(
                                                 Bucket=bucket,
                                                 Delete={
@@ -1070,6 +1078,8 @@ def purge(bucket, sure):
                                             Bucket=bucket,
                                             KeyMarker=batch['NextKeyMarker']
                                             )
+            if not batch['IsTruncated']:
+                break
 
         response = s3_client.delete_bucket(Bucket=bucket)
 
