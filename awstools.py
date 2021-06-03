@@ -255,6 +255,33 @@ def cssh(host, command, no_instance_id):
                     if set_debug:
                         print(str(e))
 
+@ec2.command()
+@click.argument('host')
+@click.argument('file')
+@click.argument('target', default='~')
+@click.option('--no-instance-id', is_flag=True, default=False, help='connect to any host that matches')
+def scp(host, file, target,no_instance_id):
+    global set_debug, ip_to_use
+
+    if host.startswith('i-'):
+        reservations = aws_search_ec2_instances_by_id(host)
+    else:
+        reservations = aws_search_ec2_instances_by_name(host)
+
+    if not reservations:
+        reservations = aws_search_ec2_instances_by_name('*'+host+'*')
+
+    for reservation in reservations:
+        for instance in reservation["Instances"]:
+            if instance['State']['Name']=='running':
+                if not no_instance_id:
+                    print("{: <60} {}".format(ec2_get_instance_name(instance), instance['InstanceId']))
+                try:
+                    subprocess.check_call(['scp', file, instance[ip_to_use]+':'+target])
+                except Exception as e:
+                    if set_debug:
+                        print(str(e))
+
 
 def ec2_ami_describe(ami):
     global ec2_client
