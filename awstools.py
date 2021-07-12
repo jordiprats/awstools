@@ -1214,9 +1214,9 @@ def list():
 
     for parameter in aws_ssm_list_parameters():
         if 'Description' in parameter.keys():
-            print("{: <60} {: <15} {: <80} {}".format(parameter['Name'], parameter['Type'], parameter['Description'], str(parameter['LastModifiedDate'])))
+            print("{: <60} {: <15} {: <15} {: <80} {}".format(parameter['Name'], parameter['Type'], parameter['KeyId'], parameter['Description'], str(parameter['LastModifiedDate'])))
         else:
-            print("{: <60} {: <15} {: <80} {}".format(parameter['Name'], parameter['Type'], '', str(parameter['LastModifiedDate'])))
+            print("{: <60} {: <15} {: <15} {: <80} {}".format(parameter['Name'], parameter['Type'], parameter['KeyId'], '', str(parameter['LastModifiedDate'])))
 
 @ssm.command()
 @click.argument('parameter')
@@ -1265,7 +1265,8 @@ def get(parameter, output_json, output_k8s_secret, k8s_secret_name):
 @click.option('--import-file',  help='file to read json data from', type=click.File('r'), default=sys.stdin)
 @click.option('--rename',  default=None, help='Rename parameter to')
 @click.option('--overwrite', is_flag=True, default=False, help='overwrite parameter')
-def put(import_file, rename, overwrite):
+@click.option('--key',  default="alias/aws/ssm", help='KMS Key to use')
+def put(import_file, rename, overwrite, key):
     """import parameter from JSON"""
     parameter_json = json.load(import_file)
 
@@ -1282,6 +1283,7 @@ def put(import_file, rename, overwrite):
                                 Value=parameter_json['Value'],
                                 Description=parameter_json['Description'],
                                 Type=parameter_json['Type'],
+                                KeyId=key,
                                 Overwrite=overwrite,
                             )
 
@@ -1292,7 +1294,8 @@ def put(import_file, rename, overwrite):
 @click.argument('value')
 @click.option('--description', default='', help='parameter description', type=str)
 @click.option('--overwrite', is_flag=True, default=False, help='overwrite parameter')
-def set(parameter, value, description, overwrite):
+@click.option('--key',  default="alias/aws/ssm", help='KMS Key to use')
+def set(parameter, value, description, overwrite, key):
     """set SecureString parameter"""
     if not ssm_client:
         init_ssm_client()
@@ -1302,6 +1305,7 @@ def set(parameter, value, description, overwrite):
                                 Value=value,
                                 Description=description,
                                 Type='SecureString',
+                                KeyId=key,
                                 Overwrite=overwrite,
                             )
 
