@@ -164,8 +164,9 @@ def ec2_get_ip(instance):
 @click.option('--all', is_flag=True, default=False, help='show all instances - default is to list just running instances')
 @click.option('--connect', is_flag=True, default=False, help='connect to this instance')
 @click.option('--any', is_flag=True, default=False, help='connect to any host that matches')
+@click.option('--terminate', is_flag=True, default=False, help='terminate any instance that matches')
 @click.pass_context
-def search(ctx, name, all, connect, any):
+def search(ctx, name, all, connect, any, terminate):
     """search EC2 running instances"""
     global set_debug
 
@@ -178,14 +179,24 @@ def search(ctx, name, all, connect, any):
     else:
         reservations = aws_search_ec2_instances_by_name('*'+name+'*')
 
-    for reservation in reservations:
-        for instance in reservation["Instances"]:
-            #print(str(instance))
-            if all:
-                print_instance(ec2_get_instance_name(instance), ec2_get_ip(instance), instance['InstanceId'], instance['LaunchTime'], instance['KeyName'], instance['State']['Name'])
-            else:
-                if instance['State']['Name']=='running':
-                    print_instance(ec2_get_instance_name(instance), ec2_get_ip(instance), instance['InstanceId'], instance['LaunchTime'], instance['KeyName'])
+    if terminate:
+        for reservation in reservations:
+            for instance in reservation["Instances"]:
+                try:
+                    termination_response = aws_ec2_terminate_instances_by_id([instance['InstanceId']])
+                except Exception as e:
+                    termination_response['ResponseMetadata']['RequestId'] = e
+                print_instance(ec2_get_instance_name(instance), ec2_get_ip(instance), instance['InstanceId'], instance['LaunchTime'], instance['KeyName'], "terminating: "+str(termination_response['ResponseMetadata']['RequestId']))
+                
+    else:
+        for reservation in reservations:
+            for instance in reservation["Instances"]:
+                #print(str(instance))
+                if all:
+                    print_instance(ec2_get_instance_name(instance), ec2_get_ip(instance), instance['InstanceId'], instance['LaunchTime'], instance['KeyName'], instance['State']['Name'])
+                else:
+                    if instance['State']['Name']=='running':
+                        print_instance(ec2_get_instance_name(instance), ec2_get_ip(instance), instance['InstanceId'], instance['LaunchTime'], instance['KeyName'])
 
 @ec2.command()
 @click.argument('host')
