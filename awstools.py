@@ -94,6 +94,16 @@ def aws_ec2_terminate_instances_by_id(instance_ids=[], dryrun=False):
                                             DryRun=dryrun,
                                         )
 
+def aws_ec2_cpucredits_by_id(instance_id):
+    global ec2_client
+
+    if not ec2_client:
+        init_ec2_client()
+    
+    response = ec2_client.describe_instance_credit_specifications(InstanceIds=[instance_id])
+
+    return response
+
 def aws_search_ec2_instances_by_id(instance_id):
     global set_debug, set_profile, set_region
 
@@ -159,6 +169,26 @@ def ec2_get_ip(instance):
     except:
         return '-'
 
+@ec2.command()
+@click.argument('name', default='')
+def cpucredits(name):
+    """search EC2 running instances"""
+    global set_debug
+
+    if name.startswith('i-'):
+        reservations = aws_search_ec2_instances_by_id(name)
+    else:
+        reservations = aws_search_ec2_instances_by_name('*'+name+'*')
+
+    for reservation in reservations:
+        for instance in reservation["Instances"]:
+            cpucredits = aws_ec2_cpucredits_by_id(instance['InstanceId'])
+            print("{: <60} {: <20} {: <20} {}".format(
+                                                ec2_get_instance_name(instance), 
+                                                instance['InstanceId'], 
+                                                instance['InstanceType'], 
+                                                cpucredits['InstanceCreditSpecifications'][0]['CpuCredits'])
+                                            )
 @ec2.command()
 @click.argument('name', default='')
 @click.option('--all', is_flag=True, default=False, help='show all instances - default is to list just running instances')
