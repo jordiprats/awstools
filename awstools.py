@@ -195,8 +195,9 @@ def cpucredits(name):
 @click.option('--connect', is_flag=True, default=False, help='connect to this instance')
 @click.option('--any', is_flag=True, default=False, help='connect to any host that matches')
 @click.option('--terminate', is_flag=True, default=False, help='terminate any instance that matches')
+@click.option('--instance-type', default='', help='filter by instance type')
 @click.pass_context
-def search(ctx, name, all, connect, any, terminate):
+def search(ctx, name, all, connect, any, terminate, instance_type):
     """search EC2 running instances"""
     global set_debug
 
