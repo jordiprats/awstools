@@ -1157,7 +1157,7 @@ def purge(bucket, sure):
         print("Are you sure you want to delete "+bucket+", all it's contents AND all it's versions?")
 
 #
-# SM SecretManager
+# SM SecretsManager
 #
 
 sm_client = None
@@ -1205,7 +1205,18 @@ def list():
     secrets = aws_secretsmanager_list()
 
     for secret in secrets:
-        print(str(secret))
+        print("{: <60} {: <15} {}".format(secret['Name'], secret['ARN'], secret.get('Description', '')))
+
+@sm.command()
+@click.argument('name')
+def search(name):
+    """search secrets"""
+
+    secrets = aws_secretsmanager_list()
+
+    for secret in secrets:
+        if name in secret['Name']:
+            print("{: <45} {: <110} {: <15}".format(secret['Name'], secret['ARN'], secret.get('Description', '')))
 
 #
 # SSM
