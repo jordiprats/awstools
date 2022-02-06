@@ -629,6 +629,54 @@ def start_instance_refresh(name):
 
 @asg.command()
 @click.argument('name')
+@click.option('--instance', default=[], multiple=True)
+@click.option('--decrement_asg', default=False, is_flag=True, help='decrement ASG capacity')
+def detach_instances(name, instance, decrement_asg):
+
+    if not autoscaling_client:
+        init_autoscaling_client()
+
+    list_asg = aws_search_ec2_asg_by_name(name)
+
+    if not list_asg:
+        sys.exit('ERROR: ASGs not found')
+
+    # print("list asg {} list instances {}".format(len(list_asg), len(instance)))
+
+    for asg in list_asg:
+        # print(str(asg))
+        instance_ids = []
+        try:
+            for i in asg['Instances']:
+                instance_ids.append(i['InstanceId'])
+        except:
+            pass
+
+        if len(instance)>0:
+            for i in instance:
+                if i in instance_ids:
+                    # detach instance
+                    response = autoscaling_client.detach_instances(
+                                                            InstanceIds=[i],
+                                                            AutoScalingGroupName=asg['AutoScalingGroupName'],
+                                                            ShouldDecrementDesiredCapacity=decrement_asg
+                                                        )
+                    print("detaching {} from {}: {}".format(i, asg['AutoScalingGroupName'], str(response['ResponseMetadata']['RequestId'])))
+        else:
+            # detach all instances
+            response = autoscaling_client.detach_instances(
+                                                    InstanceIds=instance_ids,
+                                                    AutoScalingGroupName=asg['AutoScalingGroupName'],
+                                                    ShouldDecrementDesiredCapacity=decrement_asg
+                                                )
+            print("detaching all instances ({}) from {} - {}".format(
+                                                                        " ".join(instance_ids), 
+                                                                        asg['AutoScalingGroupName'], 
+                                                                        str(response['ResponseMetadata']['RequestId']))
+                                                                    )
+
+@asg.command()
+@click.argument('name')
 @click.argument('capacity', type=int)
 @click.option('--max-size', default=-1, help='ASG max size', type=int)
 @click.option('--min-size', default=-1, help='ASG min size', type=int)

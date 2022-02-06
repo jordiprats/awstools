@@ -1,4 +1,4 @@
-configparser
-click
 boto3
+click
 base64
+configparser
