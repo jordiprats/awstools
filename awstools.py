@@ -987,6 +987,40 @@ def aws_route53_list_resource_record_sets(zone_id):
   else:
     sys.exit('zone '+zone_id+' not found')
 
+
+@route53.command()
+@click.argument('zone-id')
+@click.argument('record-name')
+def delete_record(zone_id, record_name):
+  """delete DNS record from hosted zone"""
+  global route53_client
+
+  if not route53_client:
+    init_route53_client()
+
+  if not aws_route53_zone_exists(zone_id):
+    sys.exit('zone '+zone_id+' not found')
+
+  record_to_delete = None
+  response = route53_client.list_resource_record_sets(HostedZoneId=zone_id, StartRecordName=record_name, MaxItems='1')
+
+  # print('deleting: ' + record_name)
+  if record_name in response['ResourceRecordSets'][0]['Name']:
+      record_to_delete = response['ResourceRecordSets'][0]
+      route53_client.change_resource_record_sets(
+          HostedZoneId=zone_id,
+          ChangeBatch={
+              'Changes': [{
+                  'Action': 'DELETE',
+                  'ResourceRecordSet': record_to_delete
+              }]
+          }
+      )
+      print('deleted: ' + record_to_delete['Name'])
+      
+  else:
+      print('record not found: ' + record_name)
+
 @route53.command()
 @click.argument('zone-id')
 @click.option('--include-not-importable', is_flag=True, default=False, help='include NS and SOA records')
