@@ -1,0 +1,5 @@
+site_name: awstools
+theme: readthedocs
+
+markdown_extensions:
+    - mkdocs-click
