@@ -355,7 +355,7 @@ def ssh(ctx, host, command, any):
   if len(candidates) > 1 and not any:
     if set_debug:
       print(str(candidates))
-    ctx.invoke(search, name=host, all=False)
+    ctx.invoke(search, name=host)
     return
   elif len(candidates) > 1 and any:
     random.shuffle(candidates)
@@ -442,6 +442,25 @@ def ec2_ami_describe(ami):
 def ami():
   """ EC2 AMI related commands """
   pass
+
+@ami.command()
+@click.argument('instance-id')
+@click.argument('ami-name')
+@click.option('--reboot', is_flag=True, default=False, help='create AMI rebooting instance')
+@click.option('--description',  default=None, help='AMI description')
+def create_image(instance_id, ami_name, reboot, description):
+  """ create an AMI from an instance """
+  global ec2_client
+
+  if not ec2_client:
+    init_ec2_client()
+
+  if not description:
+    description = "AMI created from instance "+instance_id
+
+  response = ec2_client.create_image(InstanceId=instance_id, Name=ami_name, NoReboot=not reboot, Description=description)
+  #print(response)
+  print("AMI created: "+response['ImageId'])
 
 @ami.command()
 @click.argument('ami')
@@ -687,7 +706,7 @@ def suspended_processes(name):
     list_sp = []
     for sp in asg['SuspendedProcesses']:
       list_sp.append(sp['ProcessName'])
-    print("{: <30} {}".format(asg['AutoScalingGroupName'], " ".join(list_sp)) )
+    print("{: <80} {}".format(asg['AutoScalingGroupName'], " ".join(list_sp)) )
 
 # filter non-relevant?
 @asg.command()
@@ -1819,6 +1838,7 @@ def list(name):
   dbinstances = aws_acm_list_db_instances(name)
 
   for dbinstance in dbinstances:
+    # print(str(dbinstance))
     print("{: <50} {: <20} {: <20} {}".format(dbinstance['DBInstanceIdentifier'], dbinstance['Engine'], dbinstance['DBInstanceStatus'], str(dbinstance['DBParameterGroups'])))
 
 @rds.group()
