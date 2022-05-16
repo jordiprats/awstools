@@ -20,9 +20,10 @@ set_debug = False
 set_profile = 'default'
 set_region = None
 ip_to_use = 'PrivateIpAddress'
+user_to_ssh = 'ec2-user'
 
 def load_defaults(config_file):
-  global set_debug, set_profile, set_region, ip_to_use
+  global set_debug, set_profile, set_region, ip_to_use, user_to_ssh
 
   try:
     config = ConfigParser()
@@ -47,6 +48,11 @@ def load_defaults(config_file):
       ip_to_use = config.get('aws', 'useIP').strip('"').strip("'").strip()
     except:
       ip_to_use = 'PrivateIpAddress'
+
+    try:
+      user_to_ssh = config.get('aws', 'sshUser').strip('"').strip("'").strip()
+    except:
+      user_to_ssh = 'ec2-user'
 
   except:
     pass
@@ -229,10 +235,19 @@ def ec2_get_instance_name(instance):
   except:
     return '-'            
 
-def ec2_get_ip(instance):
+def ec2_get_ip(instance, ip_type=None):
   global set_debug, ip_to_use
-  try:   
-    return instance[ip_to_use]
+  try:
+    if ip_type:
+      if ip_type == 'public':
+        ip_type_index = 'PublicIpAddress'
+      elif ip_type == 'private':
+        ip_type_index = 'PrivateIpAddress'
+      else:
+        ip_type_index = 'PublicIpAddress'
+      return instance[ip_type_index]
+    else:
+      return instance[ip_to_use]
   except:
     return '-'
 
@@ -288,6 +303,11 @@ def interfaces(name, no_title):
         # print(str(interface))
       print(base_format.format(ec2_get_instance_name(instance), instance['InstanceId'], count_eni, count_private_ips))
   
+@ec2.command()
+@click.argument('name', default='')
+@click.pass_context
+def list(ctx, name):
+  ctx.invoke(search, name=name)
 
 @ec2.command()
 @click.argument('name', default='')
@@ -296,8 +316,9 @@ def interfaces(name, no_title):
 @click.option('--any', is_flag=True, default=False, help='connect to any host that matches')
 @click.option('--terminate', is_flag=True, default=False, help='terminate any instance that matches')
 @click.option('--instance-type', default='', help='filter by instance type')
+@click.option('--ip', default=None, help='IP to use for ssh')
 @click.pass_context
-def search(ctx, name, all, connect, any, terminate, instance_type):
+def search(ctx, name, all, connect, any, terminate, instance_type, ip):
   """search EC2 running instances"""
   global set_debug
 
@@ -317,26 +338,27 @@ def search(ctx, name, all, connect, any, terminate, instance_type):
           termination_response = aws_ec2_terminate_instances_by_id([instance['InstanceId']])
         except Exception as e:
           termination_response['ResponseMetadata']['RequestId'] = e
-        print_instance(ec2_get_instance_name(instance), ec2_get_ip(instance), instance['InstanceId'], instance['LaunchTime'], instance['KeyName'], "terminating: "+str(termination_response['ResponseMetadata']['RequestId']))
+        print_instance(ec2_get_instance_name(instance), ec2_get_ip(instance, ip), instance['InstanceId'], instance['LaunchTime'], instance['KeyName'], "terminating: "+str(termination_response['ResponseMetadata']['RequestId']))
         
   else:
     for reservation in reservations:
       for instance in reservation["Instances"]:
         #print(str(instance))
         if all:
-          print_instance(ec2_get_instance_name(instance), ec2_get_ip(instance), instance['InstanceId'], instance['LaunchTime'], instance['KeyName'], instance['State']['Name'])
+          print_instance(ec2_get_instance_name(instance), ec2_get_ip(instance, ip), instance['InstanceId'], instance['LaunchTime'], instance['KeyName'], instance['State']['Name'])
         else:
           if instance['State']['Name']=='running':
-            print_instance(ec2_get_instance_name(instance), ec2_get_ip(instance), instance['InstanceId'], instance['LaunchTime'], instance['KeyName'])
+            print_instance(ec2_get_instance_name(instance), ec2_get_ip(instance, ip), instance['InstanceId'], instance['LaunchTime'], instance['KeyName'])
 
 @ec2.command()
 @click.argument('host')
 @click.argument('command', default='')
 @click.option('--any', is_flag=True, default=False, help='connect to any host that matches')
+@click.option('--ip', default=None, help='IP to use for ssh')
 @click.pass_context
-def ssh(ctx, host, command, any):
+def ssh(ctx, host, command, any, ip):
   """ssh to a EC2 instance by name"""
-  global set_debug, ip_to_use
+  global set_debug
 
   if host.startswith('i-'):
     reservations = aws_search_ec2_instances_by_id(host)
@@ -350,7 +372,7 @@ def ssh(ctx, host, command, any):
   for reservation in reservations:
     for instance in reservation["Instances"]:
       if instance['State']['Name']=='running':
-        candidates.append(instance[ip_to_use])
+        candidates.append(ec2_get_ip(instance, ip))
 
   if len(candidates) > 1 and not any:
     if set_debug:
@@ -362,9 +384,9 @@ def ssh(ctx, host, command, any):
 
   try:
     if command:
-      ret = subprocess.check_call(['ssh', candidates[0], command])
+      ret = subprocess.check_call(['ssh', user_to_ssh+'@'+candidates[0], command])
     else:
-      ret = subprocess.check_call(['ssh', candidates[0]])
+      ret = subprocess.check_call(['ssh', user_to_ssh+'@'+candidates[0]])
     sys.exit(ret)
   except Exception as e:
     if set_debug:
@@ -375,8 +397,9 @@ def ssh(ctx, host, command, any):
 @click.argument('host')
 @click.argument('command')
 @click.option('--no-instance-id', is_flag=True, default=False, help='connect to any host that matches')
-def cssh(host, command, no_instance_id):
-  global set_debug, ip_to_use
+@click.option('--ip', default=None, help='IP to use for ssh')
+def cssh(host, command, no_instance_id, ip):
+  global set_debug
 
   if host.startswith('i-'):
     reservations = aws_search_ec2_instances_by_id(host)
@@ -392,7 +415,7 @@ def cssh(host, command, no_instance_id):
         if not no_instance_id:
           print("{: <60} {}".format(ec2_get_instance_name(instance), instance['InstanceId']))
         try:
-          subprocess.check_call(['ssh', instance[ip_to_use], command])
+          subprocess.check_call(['ssh', user_to_ssh+'@'+ec2_get_ip(instance, ip), command])
         except Exception as e:
           if set_debug:
             print(str(e))
@@ -402,8 +425,9 @@ def cssh(host, command, no_instance_id):
 @click.argument('file')
 @click.argument('target', default='~')
 @click.option('--no-instance-id', is_flag=True, default=False, help='connect to any host that matches')
+@click.option('--ip', default=None, help='IP to use for ssh')
 def scp(host, file, target,no_instance_id):
-  global set_debug, ip_to_use
+  global set_debug
 
   if host.startswith('i-'):
     reservations = aws_search_ec2_instances_by_id(host)
@@ -419,7 +443,7 @@ def scp(host, file, target,no_instance_id):
         if not no_instance_id:
           print("{: <60} {}".format(ec2_get_instance_name(instance), instance['InstanceId']))
         try:
-          subprocess.check_call(['scp', file, instance[ip_to_use]+':'+target])
+          subprocess.check_call(['scp', file, user_to_ssh+'@'+ec2_get_ip(instance, ip)+':'+target])
         except Exception as e:
           if set_debug:
             print(str(e))
@@ -557,7 +581,7 @@ def import_keypair(keypair, pub_file):
 @click.argument('instance_id')
 def instance_tags(instance_id,):
   """show instance tags"""
-  global set_debug, ip_to_use
+  global set_debug
 
   if instance_id.startswith('i-'):
     reservations = aws_search_ec2_instances_by_id(instance_id)
@@ -1201,7 +1225,7 @@ def eks():
 @click.option('--kubeconfig', default='', help='kubeconfig file', type=str)
 def update_kubeconfig(cluster, kubeconfig):
   """import EKS cluster context to kubectl"""
-  global set_debug, set_profile, set_region, ip_to_use
+  global set_debug, set_profile, set_region
   if cluster in aws_list_eks_clusters():
     try:
       # aws eks --profile profile update-kubeconfig --name clustername
@@ -1327,8 +1351,27 @@ def ls(bucket, path):
 @s3.command()
 @click.argument('bucket')
 @click.option('--sure', is_flag=True, default=False, help='shut up BITCH! I known what I\'m doing')
+def delete(bucket, sure):
+  """ delete bucket """
+  global s3_client
+
+  if not s3_client:
+    init_s3_client()
+  
+  if not sure:
+    sys.exit("Are you sure you want to delete "+bucket+"? (--sure)")
+  else:
+    try:
+      response = s3_client.delete_bucket(Bucket=bucket)
+      print(str(response['ResponseMetadata']['RequestId']))
+    except Exception as e:
+      sys,exit('Unable to delete bucket '+bucket+': '+str(e))
+
+@s3.command()
+@click.argument('bucket')
+@click.option('--sure', is_flag=True, default=False, help='shut up BITCH! I known what I\'m doing')
 def purge(bucket, sure):
-  """delete all versions of a bucket"""
+  """delete all objects and versions"""
   global s3_client
 
   if sure:
@@ -1374,19 +1417,18 @@ def purge(bucket, sure):
       print(str_out.format(len(objects_to_delete), delete_deleted, delete_errors))
 
 
-      batch = s3_client.list_object_versions(
-                      MaxKeys=1000, 
-                      Bucket=bucket,
-                      KeyMarker=batch['NextKeyMarker']
-                      )
-      if not batch['IsTruncated']:
+      try:
+        batch = s3_client.list_object_versions(
+                        MaxKeys=1000, 
+                        Bucket=bucket,
+                        KeyMarker=batch['NextKeyMarker']
+                        )
+        if not batch['IsTruncated']:
+          break
+      except:
         break
-
-    response = s3_client.delete_bucket(Bucket=bucket)
-
-    print(str(response['ResponseMetadata']['RequestId']))
   else:
-    print("Are you sure you want to delete "+bucket+", all it's contents AND all it's versions?")
+    sys.exit("Are you sure you want to all objects and versions from "+bucket+"? (--sure)")
 
 #
 # SM SecretsManager
