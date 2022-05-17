@@ -226,6 +226,10 @@ def ec2():
   """ EC2 related commands """
   pass
 
+def ec2_get_instance_ip(instance):
+  print(str(instance))
+  return instance['InstanceId']
+
 def ec2_get_instance_name(instance):
   try:   
     for tag in instance['Tags']:
@@ -305,20 +309,13 @@ def interfaces(name, no_title):
   
 @ec2.command()
 @click.argument('name', default='')
-@click.pass_context
-def list(ctx, name):
-  ctx.invoke(search, name=name)
-
-@ec2.command()
-@click.argument('name', default='')
 @click.option('--all', is_flag=True, default=False, help='show all instances - default is to list just running instances')
 @click.option('--connect', is_flag=True, default=False, help='connect to this instance')
 @click.option('--any', is_flag=True, default=False, help='connect to any host that matches')
 @click.option('--terminate', is_flag=True, default=False, help='terminate any instance that matches')
-@click.option('--instance-type', default='', help='filter by instance type')
 @click.option('--ip', default=None, help='IP to use for ssh')
 @click.pass_context
-def search(ctx, name, all, connect, any, terminate, instance_type, ip):
+def search(ctx, name, all, connect, any, terminate, ip):
   """search EC2 running instances"""
   global set_debug
 
@@ -349,6 +346,18 @@ def search(ctx, name, all, connect, any, terminate, instance_type, ip):
         else:
           if instance['State']['Name']=='running':
             print_instance(ec2_get_instance_name(instance), ec2_get_ip(instance, ip), instance['InstanceId'], instance['LaunchTime'], instance['KeyName'])
+
+@ec2.command()
+@click.argument('name', default='')
+@click.option('--all', is_flag=True, default=False, help='show all instances - default is to list just running instances')
+@click.option('--connect', is_flag=True, default=False, help='connect to this instance')
+@click.option('--any', is_flag=True, default=False, help='connect to any host that matches')
+@click.option('--terminate', is_flag=True, default=False, help='terminate any instance that matches')
+@click.option('--instance-type', default='', help='filter by instance type')
+@click.option('--ip', default=None, help='IP to use for ssh')
+@click.pass_context
+def list(ctx, name, all, connect, any, terminate, instance_type, ip):
+  ctx.forward(search)
 
 @ec2.command()
 @click.argument('host')
@@ -384,9 +393,15 @@ def ssh(ctx, host, command, any, ip):
 
   try:
     if command:
-      ret = subprocess.check_call(['ssh', user_to_ssh+'@'+candidates[0], command])
+      call_command = ['ssh', user_to_ssh+'@'+candidates[0], command]
+      if set_debug:
+        print(str(call_command))
+      ret = subprocess.check_call()
     else:
-      ret = subprocess.check_call(['ssh', user_to_ssh+'@'+candidates[0]])
+      call_command = ['ssh', user_to_ssh+'@'+candidates[0]]
+      if set_debug:
+        print(str(call_command))
+      ret = subprocess.check_call(call_command)
     sys.exit(ret)
   except Exception as e:
     if set_debug:
@@ -448,6 +463,33 @@ def scp(host, file, target,no_instance_id):
           if set_debug:
             print(str(e))
 
+@ec2.command()
+@click.argument('name')
+@click.option('--sure', is_flag=True, default=False, help='shut up BITCH! I known what I\'m doing')
+def terminate(name, sure):
+  global set_debug
+
+  if name.startswith('i-'):
+    reservations = aws_search_ec2_instances_by_id(name)
+  else:
+    reservations = aws_search_ec2_instances_by_name(name)
+  
+  if not reservations:
+    reservations = aws_search_ec2_instances_by_name('*'+name+'*')
+
+  for reservation in reservations:
+    for instance in reservation["Instances"]:
+      if instance['State']['Name']!='terminated':
+        if sure:
+          try:
+            ec2_terminate_instances_response = ec2.terminate_instances(InstanceIds=[instance["InstanceId"]])             
+            termination_id = ec2_terminate_instances_response['ResponseMetadata']['RequestId']
+            print_instance(ec2_get_instance_name(instance), ec2_get_ip(instance), instance['InstanceId'], instance['LaunchTime'], instance['KeyName'], "terminating: "+str(termination_id))
+          except Exception as e:
+            termination_response = str(e)
+            print_instance(ec2_get_instance_name(instance), ec2_get_ip(instance), instance['InstanceId'], instance['LaunchTime'], instance['KeyName'], "error terminating: "+str(termination_response))
+        else:
+          print_instance(ec2_get_instance_name(instance), ec2_get_ip(instance), instance['InstanceId'], instance['LaunchTime'], instance['KeyName'], instance['State']['Name']+" (use --sure to terminate)")
 
 def ec2_ami_describe(ami):
   global ec2_client
@@ -1365,12 +1407,13 @@ def delete(bucket, sure):
       response = s3_client.delete_bucket(Bucket=bucket)
       print(str(response['ResponseMetadata']['RequestId']))
     except Exception as e:
-      sys,exit('Unable to delete bucket '+bucket+': '+str(e))
+      sys.exit('Unable to delete bucket '+bucket+': '+str(e))
 
 @s3.command()
 @click.argument('bucket')
 @click.option('--sure', is_flag=True, default=False, help='shut up BITCH! I known what I\'m doing')
-def purge(bucket, sure):
+@click.option('--delete', is_flag=True, default=False, help='delete bucket')
+def purge(bucket, sure, delete):
   """delete all objects and versions"""
   global s3_client
 
@@ -1380,8 +1423,8 @@ def purge(bucket, sure):
 
     batch = s3_client.list_object_versions(MaxKeys=1000, Bucket=bucket)
     str_out = "{: <20} {: <20} {}"
-    print(str_out.format('Requested', 'Deleted', 'Errors'))
-
+    
+    iteration = 0
     while True:
 
       objects_to_delete = []
@@ -1400,6 +1443,14 @@ def purge(bucket, sure):
           delete_candidate['VersionId'] = version['VersionId']
 
           objects_to_delete.append(delete_candidate)
+      
+      if len(objects_to_delete) == 0:
+        print("No objects to delete")
+        break
+
+      if iteration == 0:
+        print(str_out.format('Requested', 'Deleted', 'Errors'))
+
       response = s3_client.delete_objects(
                         Bucket=bucket,
                         Delete={
@@ -1427,6 +1478,15 @@ def purge(bucket, sure):
           break
       except:
         break
+
+      iteration += 1
+    
+    if delete:
+      try:
+        response = s3_client.delete_bucket(Bucket=bucket)
+        print("deleting bucket "+bucket+" "+str(response['ResponseMetadata']['RequestId']))
+      except Exception as e:
+        sys.exit('Unable to delete bucket '+bucket+': '+str(e))
   else:
     sys.exit("Are you sure you want to all objects and versions from "+bucket+"? (--sure)")
 
