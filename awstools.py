@@ -307,15 +307,7 @@ def interfaces(name, no_title):
         # print(str(interface))
       print(base_format.format(ec2_get_instance_name(instance), instance['InstanceId'], count_eni, count_private_ips))
   
-@ec2.command()
-@click.argument('name', default='')
-@click.option('--all', is_flag=True, default=False, help='show all instances - default is to list just running instances')
-@click.option('--connect', is_flag=True, default=False, help='connect to this instance')
-@click.option('--any', is_flag=True, default=False, help='connect to any host that matches')
-@click.option('--terminate', is_flag=True, default=False, help='terminate any instance that matches')
-@click.option('--ip', default=None, help='IP to use for ssh')
-@click.pass_context
-def search(ctx, name, all, connect, any, terminate, ip):
+def ec2_list_instances(ctx, name, all, connect, any, terminate, ip):
   """search EC2 running instances"""
   global set_debug
 
@@ -353,11 +345,21 @@ def search(ctx, name, all, connect, any, terminate, ip):
 @click.option('--connect', is_flag=True, default=False, help='connect to this instance')
 @click.option('--any', is_flag=True, default=False, help='connect to any host that matches')
 @click.option('--terminate', is_flag=True, default=False, help='terminate any instance that matches')
-@click.option('--instance-type', default='', help='filter by instance type')
 @click.option('--ip', default=None, help='IP to use for ssh')
 @click.pass_context
-def list(ctx, name, all, connect, any, terminate, instance_type, ip):
-  ctx.forward(search)
+def search(ctx, name, all, connect, any, terminate, ip):
+  ec2_list_instances(ctx, name, all, connect, any, terminate, ip)
+
+@ec2.command()
+@click.argument('name', default='')
+@click.option('--all', is_flag=True, default=False, help='show all instances - default is to list just running instances')
+@click.option('--connect', is_flag=True, default=False, help='connect to this instance')
+@click.option('--any', is_flag=True, default=False, help='connect to any host that matches')
+@click.option('--terminate', is_flag=True, default=False, help='terminate any instance that matches')
+@click.option('--ip', default=None, help='IP to use for ssh')
+@click.pass_context
+def list(ctx, name, all, connect, any, terminate, ip):
+  ec2_list_instances(ctx, name, all, connect, any, terminate, ip)
 
 @ec2.command()
 @click.argument('host')
