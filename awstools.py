@@ -468,6 +468,64 @@ def scp(host, file, target,no_instance_id):
 @ec2.command()
 @click.argument('name')
 @click.option('--sure', is_flag=True, default=False, help='shut up BITCH! I known what I\'m doing')
+def start(name, sure):
+  global set_debug
+
+  if name.startswith('i-'):
+    reservations = aws_search_ec2_instances_by_id(name)
+  else:
+    reservations = aws_search_ec2_instances_by_name(name)
+  
+  if not reservations:
+    reservations = aws_search_ec2_instances_by_name('*'+name+'*')
+
+  for reservation in reservations:
+    for instance in reservation["Instances"]:
+      if instance['State']['Name']=='stopped':
+        if sure:
+          try:
+            ec2_start_instances_response = ec2.start_instances(InstanceIds=[instance["InstanceId"]])             
+            start_id = ec2_start_instances_response['ResponseMetadata']['RequestId']
+            print_instance(ec2_get_instance_name(instance), ec2_get_ip(instance), instance['InstanceId'], instance['LaunchTime'], instance['KeyName'], "terminating: "+str(start_id))
+          except Exception as e:
+            start_exception = str(e)
+            print_instance(ec2_get_instance_name(instance), ec2_get_ip(instance), instance['InstanceId'], instance['LaunchTime'], instance['KeyName'], "error terminating: "+str(start_exception))
+        else:
+          print_instance(ec2_get_instance_name(instance), ec2_get_ip(instance), instance['InstanceId'], instance['LaunchTime'], instance['KeyName'], instance['State']['Name']+" (use --sure to start)")
+
+
+@ec2.command()
+@click.argument('name')
+@click.option('--sure', is_flag=True, default=False, help='shut up BITCH! I known what I\'m doing')
+def stop(name, sure):
+  global set_debug
+
+  if name.startswith('i-'):
+    reservations = aws_search_ec2_instances_by_id(name)
+  else:
+    reservations = aws_search_ec2_instances_by_name(name)
+  
+  if not reservations:
+    reservations = aws_search_ec2_instances_by_name('*'+name+'*')
+
+  for reservation in reservations:
+    for instance in reservation["Instances"]:
+      if instance['State']['Name']=='running':
+        if sure:
+          try:
+            ec2_stop_instances_response = ec2.stop_instances(InstanceIds=[instance["InstanceId"]])             
+            stop_id = ec2_stop_instances_response['ResponseMetadata']['RequestId']
+            print_instance(ec2_get_instance_name(instance), ec2_get_ip(instance), instance['InstanceId'], instance['LaunchTime'], instance['KeyName'], "terminating: "+str(stop_id))
+          except Exception as e:
+            stop_exception = str(e)
+            print_instance(ec2_get_instance_name(instance), ec2_get_ip(instance), instance['InstanceId'], instance['LaunchTime'], instance['KeyName'], "error terminating: "+str(stop_exception))
+        else:
+          print_instance(ec2_get_instance_name(instance), ec2_get_ip(instance), instance['InstanceId'], instance['LaunchTime'], instance['KeyName'], instance['State']['Name']+" (use --sure to stop)")
+
+
+@ec2.command()
+@click.argument('name')
+@click.option('--sure', is_flag=True, default=False, help='shut up BITCH! I known what I\'m doing')
 def terminate(name, sure):
   global set_debug
 
