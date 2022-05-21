@@ -469,7 +469,10 @@ def scp(host, file, target,no_instance_id):
 @click.argument('name')
 @click.option('--sure', is_flag=True, default=False, help='shut up BITCH! I known what I\'m doing')
 def start(name, sure):
-  global set_debug
+  global set_debug, ec2_client
+
+  if not ec2_client:
+    init_ec2_client()
 
   if name.startswith('i-'):
     reservations = aws_search_ec2_instances_by_id(name)
@@ -484,7 +487,7 @@ def start(name, sure):
       if instance['State']['Name']=='stopped':
         if sure:
           try:
-            ec2_start_instances_response = ec2.start_instances(InstanceIds=[instance["InstanceId"]])             
+            ec2_start_instances_response = ec2_client.start_instances(InstanceIds=[instance["InstanceId"]])             
             start_id = ec2_start_instances_response['ResponseMetadata']['RequestId']
             print_instance(ec2_get_instance_name(instance), ec2_get_ip(instance), instance['InstanceId'], instance['LaunchTime'], instance['KeyName'], "terminating: "+str(start_id))
           except Exception as e:
@@ -498,7 +501,10 @@ def start(name, sure):
 @click.argument('name')
 @click.option('--sure', is_flag=True, default=False, help='shut up BITCH! I known what I\'m doing')
 def stop(name, sure):
-  global set_debug
+  global set_debug, ec2_client
+
+  if not ec2_client:
+    init_ec2_client()
 
   if name.startswith('i-'):
     reservations = aws_search_ec2_instances_by_id(name)
@@ -513,7 +519,7 @@ def stop(name, sure):
       if instance['State']['Name']=='running':
         if sure:
           try:
-            ec2_stop_instances_response = ec2.stop_instances(InstanceIds=[instance["InstanceId"]])             
+            ec2_stop_instances_response = ec2_client.stop_instances(InstanceIds=[instance["InstanceId"]])             
             stop_id = ec2_stop_instances_response['ResponseMetadata']['RequestId']
             print_instance(ec2_get_instance_name(instance), ec2_get_ip(instance), instance['InstanceId'], instance['LaunchTime'], instance['KeyName'], "terminating: "+str(stop_id))
           except Exception as e:
@@ -527,7 +533,10 @@ def stop(name, sure):
 @click.argument('name')
 @click.option('--sure', is_flag=True, default=False, help='shut up BITCH! I known what I\'m doing')
 def terminate(name, sure):
-  global set_debug
+  global set_debug, ec2_client
+
+  if not ec2_client:
+    init_ec2_client()
 
   if name.startswith('i-'):
     reservations = aws_search_ec2_instances_by_id(name)
@@ -542,7 +551,7 @@ def terminate(name, sure):
       if instance['State']['Name']!='terminated':
         if sure:
           try:
-            ec2_terminate_instances_response = ec2.terminate_instances(InstanceIds=[instance["InstanceId"]])             
+            ec2_terminate_instances_response = ec2_client.terminate_instances(InstanceIds=[instance["InstanceId"]])             
             termination_id = ec2_terminate_instances_response['ResponseMetadata']['RequestId']
             print_instance(ec2_get_instance_name(instance), ec2_get_ip(instance), instance['InstanceId'], instance['LaunchTime'], instance['KeyName'], "terminating: "+str(termination_id))
           except Exception as e:
