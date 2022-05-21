@@ -1548,7 +1548,10 @@ def purge(bucket, sure, delete):
       except Exception as e:
         sys.exit('Unable to delete bucket '+bucket+': '+str(e))
   else:
-    sys.exit("Are you sure you want to all objects and versions from "+bucket+"? (--sure)")
+    if delete:
+      sys.exit("Are you sure you want the bucket "+bucket+" and all it's contents? (--sure)")
+    else:
+      sys.exit("Are you sure you want to all objects and versions from "+bucket+"? (--sure)")
 
 #
 # SM SecretsManager
