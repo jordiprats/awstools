@@ -388,7 +388,7 @@ def ssh(ctx, host, command, any, ip):
   if len(candidates) > 1 and not any:
     if set_debug:
       print(str(candidates))
-    ctx.invoke(search, name=host)
+    ec2_list_instances(ctx=ctx, name=host, all=False, connect=False, any=False, terminate=False, ip=ip)
     return
   elif len(candidates) > 1 and any:
     random.shuffle(candidates)
