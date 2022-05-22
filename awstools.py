@@ -1954,7 +1954,7 @@ def list():
   certs = aws_acm_list()
 
   for cert in certs:
-    print("{: <50} {}".format(cert['CertificateArn'], cert['DomainName']))
+    print("{: <100} {}".format(cert['CertificateArn'], cert['DomainName']))
 
 #
 # RDS
