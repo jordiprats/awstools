@@ -1968,7 +1968,7 @@ def list():
 
   for cert in certs:
     # print(str(cert))
-    print("{: <100} {}".format(cert['CertificateArn'], cert['DomainName']))
+    print("{: <100} {: <20} {}".format(cert['CertificateArn'], cert['DomainName'], cert['DomainValidationOptions'][0]['ValidationStatus']))
 
 #
 # RDS
