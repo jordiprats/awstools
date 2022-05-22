@@ -1921,6 +1921,14 @@ def init_acm_client():
   except Exception as e:
     sys.exit('ERROR: '+str(e))
 
+def acm_describe_cert(cert):
+  global acm_client
+
+  if not acm_client:
+    init_acm_client()
+
+  return acm_client.describe_certificate(CertificateArn=cert['CertificateArn'])['Certificate']
+
 def aws_acm_list():
   global acm_client
 
@@ -1929,16 +1937,21 @@ def aws_acm_list():
   if not acm_client:
     init_acm_client()
 
+  records = []
+
   batch = acm_client.list_certificates(MaxItems=max_items)
-  
-  records = batch['CertificateSummaryList']
+
+  for each_cert in batch['CertificateSummaryList']:
+    records.append(acm_describe_cert(each_cert))
+
   while 'NextToken' in batch.keys():
     batch = acm_client.list_certificates(
                     MaxItems=max_items,
                     NextToken=batch['NextToken']
                   )
 
-    records += batch['CertificateSummaryList']
+    for each_cert in batch['CertificateSummaryList']:
+      records.append(acm_describe_cert(each_cert))
 
   return records
 
@@ -1954,6 +1967,7 @@ def list():
   certs = aws_acm_list()
 
   for cert in certs:
+    # print(str(cert))
     print("{: <100} {}".format(cert['CertificateArn'], cert['DomainName']))
 
 #
