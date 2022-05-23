@@ -157,6 +157,7 @@ def init_ec2_client():
     sys.exit('ERROR: '+str(e))
 
 def aws_ec2_terminate_instances_by_id(instance_ids=[], dryrun=False):
+  """ terminate EC2 instances by id """
   global ec2_client
 
   if not ec2_client:
@@ -280,6 +281,7 @@ def cpucredits(name):
 @click.argument('name', default='')
 @click.option('--no-title', is_flag=True, default=False, help='don\'t show column description')
 def interfaces(name, no_title):
+  """ list ENI per instance """
   if name.startswith('i-'):
     reservations = aws_search_ec2_instances_by_id(name)
   else:
@@ -348,6 +350,7 @@ def ec2_list_instances(ctx, name, all, connect, any, terminate, ip):
 @click.option('--ip', default=None, help='IP to use for ssh')
 @click.pass_context
 def search(ctx, name, all, connect, any, terminate, ip):
+  """ list EC2 running instances """
   ec2_list_instances(ctx, name, all, connect, any, terminate, ip)
 
 @ec2.command()
@@ -359,6 +362,7 @@ def search(ctx, name, all, connect, any, terminate, ip):
 @click.option('--ip', default=None, help='IP to use for ssh')
 @click.pass_context
 def list(ctx, name, all, connect, any, terminate, ip):
+  """ list EC2 running instances """
   ec2_list_instances(ctx, name, all, connect, any, terminate, ip)
 
 @ec2.command()
@@ -416,6 +420,7 @@ def ssh(ctx, host, command, any, ip):
 @click.option('--no-instance-id', is_flag=True, default=False, help='connect to any host that matches')
 @click.option('--ip', default=None, help='IP to use for ssh')
 def cssh(host, command, no_instance_id, ip):
+  """ multiple ssh to EC2 instances by name """
   global set_debug
 
   if host.startswith('i-'):
@@ -444,6 +449,7 @@ def cssh(host, command, no_instance_id, ip):
 @click.option('--no-instance-id', is_flag=True, default=False, help='connect to any host that matches')
 @click.option('--ip', default=None, help='IP to use for ssh')
 def scp(host, file, target,no_instance_id):
+  """ copy data from/to EC2 instance by name"""
   global set_debug
 
   if host.startswith('i-'):
@@ -469,6 +475,7 @@ def scp(host, file, target,no_instance_id):
 @click.argument('name')
 @click.option('--sure', is_flag=True, default=False, help='shut up BITCH! I known what I\'m doing')
 def start(name, sure):
+  """ start EC2 instances by name """
   global set_debug, ec2_client
 
   if not ec2_client:
@@ -501,6 +508,7 @@ def start(name, sure):
 @click.argument('name')
 @click.option('--sure', is_flag=True, default=False, help='shut up BITCH! I known what I\'m doing')
 def stop(name, sure):
+  """ stop EC2 instances by name """
   global set_debug, ec2_client
 
   if not ec2_client:
@@ -533,6 +541,7 @@ def stop(name, sure):
 @click.argument('name')
 @click.option('--sure', is_flag=True, default=False, help='shut up BITCH! I known what I\'m doing')
 def terminate(name, sure):
+  """ terminate EC2 instances by name """
   global set_debug, ec2_client
 
   if not ec2_client:
@@ -674,6 +683,7 @@ def add_launchpermissions(ami, account):
 @click.argument('keypair')
 @click.option('--pub-file',  help='public side to import', type=click.File('r'), default=sys.stdin)
 def import_keypair(keypair, pub_file):
+  """ import a keypair from a public key file """
   global ec2_client
 
   if not ec2_client:
@@ -710,6 +720,7 @@ def instance_tags(instance_id,):
 @ec2.command()
 @click.argument('name', required=False, default=None)
 def subnet(name):
+  """ list subnets """
   global ec2_client
 
   if not ec2_client:
@@ -734,7 +745,6 @@ def subnet(name):
       except:
         pass
       print("{: <30} {: <30} {: <30} {: <30} {: <30} {: <30} {}".format(subnet_name, subnet['SubnetId'], subnet['VpcId'], subnet['AvailabilityZone'], subnet['CidrBlock'], subnet['State'], subnet['AvailableIpAddressCount']))
-
 
 #
 # EC2 ASG
@@ -1968,7 +1978,7 @@ def list():
 
   for cert in certs:
     # print(str(cert))
-    print("{: <100} {: <20} {}".format(cert['CertificateArn'], cert['DomainName'], cert['DomainValidationOptions'][0]['ValidationStatus']))
+    print("{: <90} {: <35} {}".format(cert['CertificateArn'], cert['DomainName'], cert['DomainValidationOptions'][0]['ValidationStatus']))
 
 #
 # RDS
