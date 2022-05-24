@@ -828,10 +828,54 @@ def aws_asg_instance_refresh_by_name(name):
   except Exception as e:
     return str(e)
 
+def ec2_asg_set_health(name, healthy=True):
+  global autoscaling_client
+
+  if not autoscaling_client:
+    init_autoscaling_client()
+
+  if healthy:
+    set_health='Healthy'
+  else:
+    set_health = 'Unhealthy'
+
+  if name.startswith('i-'):
+    reservations = aws_search_ec2_instances_by_id(name)
+  else:
+    reservations = aws_search_ec2_instances_by_name('*'+name+'*')
+
+  for reservation in reservations:
+    for instance in reservation["Instances"]:
+      if instance['State']['Name'] == 'running':
+        setheath_response = autoscaling_client.set_instance_health(
+                                          InstanceId=instance['InstanceId'],
+                                          HealthStatus=set_health,
+                                          ShouldRespectGracePeriod=False
+                                        )
+        if setheath_response['ResponseMetadata']['HTTPStatusCode']!=200:
+          print("ERROR set_instance_health: "+str(response['ResponseMetadata']['HTTPStatusCode']))
+        else:
+          print_instance(ec2_get_instance_name(instance), ec2_get_ip(instance, ip), instance['InstanceId'], instance['LaunchTime'], instance['KeyName'], "Healthy: "+str(setheath_response['ResponseMetadata']['RequestId']))
+
 @ec2.group()
 def asg():
   """ EC2 ASG related commands """
   pass
+
+@asg.command()
+@click.argument('name')
+@click.option('--ip', default=None, help='IP to show')
+def set_healthy(name, ip):
+  """ set healthy instances """
+  ec2_asg_set_health(name, healthy=True)
+
+
+@asg.command()
+@click.argument('name')
+@click.option('--ip', default=None, help='IP to show')
+def set_unhealthy(name, ip):
+  """ set unhealthy instances """
+  ec2_asg_set_health(name, healthy=False)
 
 @asg.command()
 @click.argument('name', default='')
@@ -1013,6 +1057,51 @@ def set_capacity(name, capacity, max_size, min_size, honor_cooldown, terminate):
         print("{: <60} {}".format(asg['AutoScalingGroupName'], str(response)) )    
     else:
       print("{: <60} {}".format(asg['AutoScalingGroupName'], str(response)) )
+
+#
+# EC2 LB
+# 
+
+ec2_lb2_client = None
+
+def init_ec2_lb2_client():
+  global ec2_lb2_client
+
+  try:
+    if set_region:
+      ec2_lb2_client = boto3.client(service_name='elbv2', region_name=set_region)
+    else:
+      ec2_lb2_client = boto3.client(service_name='elbv2')
+  except Exception as e:
+    sys.exit('ERROR: '+str(e))
+
+@ec2.group()
+def lb():
+  """ EC2 Load Balancer related commands """
+  pass
+
+@lb.command()
+@click.argument('name', default='')
+@click.option('--no-title', is_flag=True, default=False, help='don\'t show column description')
+def list(name, no_title):
+  """ List EC2 Load Balancers """
+  global ec2_lb2_client
+
+  if not ec2_lb2_client:
+    init_ec2_lb2_client()
+
+  paginator = ec2_lb2_client.get_paginator('describe_load_balancers')
+  dsg_iterator = paginator.paginate()
+
+  out_format = "{: <45} {: <20} {: <20} {: <20} {}"
+
+  if not no_title:
+    print(out_format.format('LoadBalancerName', 'Type', 'Scheme', 'Status', 'DNSName') )
+  for page in dsg_iterator:
+    for lb in page['LoadBalancers']:
+      if name in lb['LoadBalancerName']:
+        # print(str(sg))
+        print(out_format.format(lb['LoadBalancerName'], lb['Type'], lb['Scheme'], lb['State']['Code'], lb['DNSName']) )
 
 #
 # EC2 SG
