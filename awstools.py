@@ -257,6 +257,21 @@ def ec2_get_ip(instance, ip_type=None):
     return '-'
 
 @ec2.command()
+@click.argument('region', default='', type=str)
+def az(region):
+  """ list available AZs """
+
+  if region:
+    az_client = boto3.client(service_name='ec2', region_name=region)
+  else:
+    az_client = boto3.client(service_name='ec2')
+  
+  response = az_client.describe_availability_zones()
+
+  for zone in response['AvailabilityZones']:
+    print("{: <20} {: <20} {}".format(zone['ZoneName'], zone['State'], zone['OptInStatus']))
+
+@ec2.command()
 @click.argument('name', default='')
 def cpucredits(name):
   """retrieve InstanceCreditSpecifications"""
@@ -784,22 +799,60 @@ def aws_search_ec2_asg_by_name(name):
         records.append(asg)
   return records
 
+def aws_set_ec2_asg_max_min_by_name(name, max_size=-1, min_size=-1):
+  global autoscaling_client
+
+  if not max_size and not min_size:
+    return None
+
+  if not autoscaling_client:
+    init_autoscaling_client()
+
+  if max_size >= 0:
+    try:
+      response = autoscaling_client.update_auto_scaling_group(
+                              AutoScalingGroupName=name,
+                              MaxSize=max_size,
+                            )
+
+      if response['ResponseMetadata']['HTTPStatusCode']!=200:
+        return "ERROR update_auto_scaling_group: "+str(response['ResponseMetadata']['HTTPStatusCode'])
+
+    except Exception as e:
+      return str(e)
+    
+    return "updated max size"
+
+  if min_size >= 0:
+    try:
+      response = autoscaling_client.update_auto_scaling_group(
+                              AutoScalingGroupName=name,
+                              MinSize=min_size,
+                            )
+
+      if response['ResponseMetadata']['HTTPStatusCode']!=200:
+        return "ERROR update_auto_scaling_group: "+str(response['ResponseMetadata']['HTTPStatusCode'])
+
+    except Exception as e:
+      return str(e)
+
+    return "updated min size"
+
+  
+
 def aws_set_capacity_ec2_asg_by_name(name, max_size, min_size, capacity, honor_cooldown):
   global autoscaling_client
 
   if not autoscaling_client:
     init_autoscaling_client()
 
+  if max_size>=0:
+    print("max size: "+aws_set_ec2_asg_max_min_by_name(name=name, max_size=max_size))
+
+  if min_size>=0:
+    print("min size: "+aws_set_ec2_asg_max_min_by_name(name=name, min_size=min_size))
+
   try:
-    response = autoscaling_client.update_auto_scaling_group(
-                            AutoScalingGroupName=name,
-                            MinSize=min_size,
-                            MaxSize=max_size,
-                          )
-
-    if response['ResponseMetadata']['HTTPStatusCode']!=200:
-      return "ERROR update_auto_scaling_group: "+str(response['ResponseMetadata']['HTTPStatusCode'])
-
     response = autoscaling_client.set_desired_capacity(
                         AutoScalingGroupName=name,
                         DesiredCapacity=capacity,
@@ -1016,30 +1069,45 @@ def detach_instances(name, instance, decrement_asg):
 
 @asg.command()
 @click.argument('name')
+@click.argument('max', type=int)
+def set_max(name, max):
+  """ set ASG max size """
+  records = aws_search_ec2_asg_by_name(name)
+
+  for asg in records:
+    print("{: <60} {}".format(asg['AutoScalingGroupName'], aws_set_ec2_asg_max_min_by_name(name=asg['AutoScalingGroupName'], max_size=max)))
+
+@asg.command()
+@click.argument('name')
+@click.argument('min', type=int)
+def set_min(name, min):
+  """ set ASG min size """
+  records = aws_search_ec2_asg_by_name(name)
+
+  for asg in records:
+    print("{: <60} {}".format(asg['AutoScalingGroupName'], aws_set_ec2_asg_max_min_by_name(name=asg['AutoScalingGroupName'], min_size=min)))
+
+@asg.command()
+@click.argument('name')
 @click.argument('capacity', type=int)
 @click.option('--max-size', default=-1, help='ASG max size', type=int)
 @click.option('--min-size', default=-1, help='ASG min size', type=int)
 @click.option('--honor-cooldown', is_flag=True, default=False, help='honor cooldown')
 @click.option('--terminate', is_flag=True, default=False, help='terminate instances')
-def set_capacity(name, capacity, max_size, min_size, honor_cooldown, terminate):
-
+@click.option('--fix', is_flag=True, default=False, help='set min and max size to capacity')
+def set_capacity(name, capacity, max_size, min_size, honor_cooldown, terminate, fix):
+  """ set ASG desired capacity (optionally can also set max and min size)"""
   records = aws_search_ec2_asg_by_name(name)
 
   if not records:
     sys.exit('ERROR: ASGs not found')
 
-  if max_size < 0:
-    set_max_size = capacity
-  else:
-    set_max_size = max_size
-
-  if min_size < 0:
-    set_min_size = capacity
-  else:
-    set_min_size = min_size
+  if fix:
+    min_size = capacity
+    max_size = capacity
 
   for asg in records:
-    response = aws_set_capacity_ec2_asg_by_name(asg['AutoScalingGroupName'], set_max_size, set_min_size, capacity, honor_cooldown)
+    response = aws_set_capacity_ec2_asg_by_name(asg['AutoScalingGroupName'], max_size, min_size, capacity, honor_cooldown)
 
     if terminate and capacity==0:
       instances_to_terminate = []
@@ -1057,6 +1125,42 @@ def set_capacity(name, capacity, max_size, min_size, honor_cooldown, terminate):
         print("{: <60} {}".format(asg['AutoScalingGroupName'], str(response)) )    
     else:
       print("{: <60} {}".format(asg['AutoScalingGroupName'], str(response)) )
+
+#
+# EC2 spot
+#
+
+@ec2.group()
+def spot():
+  """ EC2 spot instances """
+  pass
+
+@spot.command()
+@click.argument('instance-type')
+@click.option('--product', multiple=True, default=['Linux/UNIX (Amazon VPC)'], help='product description')
+def current_price(instance_type, product):
+  """ get current spot price """
+  global ec2_client
+
+  if not ec2_client:
+    init_ec2_client()
+
+  response = ec2_client.describe_availability_zones()
+  # print('Availability Zones:', response['AvailabilityZones'])
+
+  out_format='{: <30} {: <30} {: <30} {: <30} {}'
+
+  print(out_format.format('Instance Type', 'Product', 'Availability Zone', 'Spot Price', "Last Update"))
+
+  for az in response['AvailabilityZones']:
+    for each_product in product:
+      # print(str(response))
+      spot_response = ec2_client.describe_spot_price_history(
+                                                          InstanceTypes=[instance_type],
+                                                          ProductDescriptions=[each_product],
+                                                          AvailabilityZone=az['ZoneName']
+                                                        )                                                  
+      print(out_format.format(instance_type, each_product, az['ZoneName'], spot_response['SpotPriceHistory'][0]['SpotPrice'], spot_response['SpotPriceHistory'][0]['Timestamp']))
 
 #
 # EC2 LB
