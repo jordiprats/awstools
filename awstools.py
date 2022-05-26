@@ -1,8 +1,9 @@
 #!/usr/bin/python3
 
+from pkg_resources import resource_filename
 from configparser import ConfigParser
-from urllib import response
 from botocore.client import Config
+from urllib import response
 
 import subprocess
 import base64
@@ -255,6 +256,63 @@ def ec2_get_ip(instance, ip_type=None):
       return instance[ip_to_use]
   except:
     return '-'
+
+def ec2_get_region_name(region):
+    endpoint_file = resource_filename('botocore', 'data/endpoints.json')
+
+    with open(endpoint_file, 'r') as f:
+        endpoint_data = json.load(f)
+
+    return endpoint_data['partitions'][0]['regions'][region]['description'].replace('Europe', 'EU')
+
+@ec2.command()
+@click.argument('instance-type')
+@click.option('--os', default='Linux', help='Operating System', type=click.Choice(['Linux', 'Windows', 'Red Hat Enterprise Linux with HA', 'RHEL', 'SUSE']))
+@click.option('--preinstalled-software', default='NA', help='Preinstalled Software', type=click.Choice(['NA', 'SQL Ent', 'SQL Std', 'SQL Web']))
+@click.option('--tenancy', default='Shared', help='Tenancy', type=click.Choice(['Shared', 'Dedicated', 'Host']))
+@click.option('--byol', is_flag=True, default=False, help='Bring your own license')
+def current_price(instance_type, os, preinstalled_software, tenancy, byol):
+  global ec2_client
+
+  if not ec2_client:
+    init_ec2_client()
+
+  region_name = ec2_get_region_name(boto3.session.Session().region_name)
+
+  filters = [
+        {'Type': 'TERM_MATCH', 'Field': 'termType', 'Value': 'OnDemand'},
+        {'Type': 'TERM_MATCH', 'Field': 'capacitystatus', 'Value': 'AllocatedHost' if tenancy == 'Host' else 'Used'},
+        {'Type': 'TERM_MATCH', 'Field': 'location', 'Value': region_name},
+        {'Type': 'TERM_MATCH', 'Field': 'instanceType', 'Value': instance_type},
+        {'Type': 'TERM_MATCH', 'Field': 'tenancy', 'Value': tenancy},
+        {'Type': 'TERM_MATCH', 'Field': 'operatingSystem', 'Value': os},
+        {'Type': 'TERM_MATCH', 'Field': 'preInstalledSw', 'Value': preinstalled_software},
+        {'Type': 'TERM_MATCH', 'Field': 'licenseModel', 'Value': 'Bring your own license' if byol else 'No License required'},
+    ]
+  
+  # Amazon Web Services Price List Service API provides the following two endpoints:
+  # https://api.pricing.us-east-1.amazonaws.com
+  # https://api.pricing.ap-south-1.amazonaws.com
+
+  pricing_client = boto3.client('pricing', region_name='us-east-1')
+
+  response = pricing_client.get_products(ServiceCode='AmazonEC2', Filters=filters)
+
+  out_format='{: <30} {: <30} {: <30} {: <30} {}'
+  print(out_format.format('Instance Type', 'OS', 'Region', 'OnDemand Price', "effective"))
+
+  for price in response['PriceList']:
+    price = json.loads(price)
+
+    for on_demand in price['terms']['OnDemand'].values():
+      for price_dimensions in on_demand['priceDimensions'].values():
+        print(out_format.format(
+                                  instance_type, 
+                                  os, 
+                                  boto3.session.Session().region_name, 
+                                  price_dimensions['pricePerUnit']['USD'], 
+                                  on_demand['effectiveDate']
+                                ))
 
 @ec2.command()
 @click.argument('region', default='', type=str)
@@ -1160,7 +1218,13 @@ def current_price(instance_type, product):
                                                           ProductDescriptions=[each_product],
                                                           AvailabilityZone=az['ZoneName']
                                                         )                                                  
-      print(out_format.format(instance_type, each_product, az['ZoneName'], spot_response['SpotPriceHistory'][0]['SpotPrice'], spot_response['SpotPriceHistory'][0]['Timestamp']))
+      print(out_format.format(
+                                instance_type, 
+                                each_product, 
+                                az['ZoneName'], 
+                                spot_response['SpotPriceHistory'][0]['SpotPrice'], 
+                                spot_response['SpotPriceHistory'][0]['Timestamp']
+                              ))
 
 #
 # EC2 LB
