@@ -867,32 +867,24 @@ def aws_set_ec2_asg_max_min_by_name(name, max_size=-1, min_size=-1):
     init_autoscaling_client()
 
   if max_size >= 0:
-    try:
-      response = autoscaling_client.update_auto_scaling_group(
-                              AutoScalingGroupName=name,
-                              MaxSize=max_size,
-                            )
+    response = autoscaling_client.update_auto_scaling_group(
+                            AutoScalingGroupName=name,
+                            MaxSize=max_size,
+                          )
 
-      if response['ResponseMetadata']['HTTPStatusCode']!=200:
-        return "ERROR update_auto_scaling_group: "+str(response['ResponseMetadata']['HTTPStatusCode'])
-
-    except Exception as e:
-      return str(e)
+    if response['ResponseMetadata']['HTTPStatusCode']!=200:
+      Exception("ERROR update_auto_scaling_group: "+str(response['ResponseMetadata']['HTTPStatusCode']))
     
     return "updated max size"
 
   if min_size >= 0:
-    try:
-      response = autoscaling_client.update_auto_scaling_group(
-                              AutoScalingGroupName=name,
-                              MinSize=min_size,
-                            )
+    response = autoscaling_client.update_auto_scaling_group(
+                            AutoScalingGroupName=name,
+                            MinSize=min_size,
+                          )
 
-      if response['ResponseMetadata']['HTTPStatusCode']!=200:
-        return "ERROR update_auto_scaling_group: "+str(response['ResponseMetadata']['HTTPStatusCode'])
-
-    except Exception as e:
-      return str(e)
+    if response['ResponseMetadata']['HTTPStatusCode']!=200:
+      Exception("ERROR update_auto_scaling_group: "+str(response['ResponseMetadata']['HTTPStatusCode']))
 
     return "updated min size"
 
@@ -904,11 +896,29 @@ def aws_set_capacity_ec2_asg_by_name(name, max_size, min_size, capacity, honor_c
   if not autoscaling_client:
     init_autoscaling_client()
 
-  if max_size>=0:
-    print("max size: "+aws_set_ec2_asg_max_min_by_name(name=name, max_size=max_size))
+  try:
+    if min_size>=0:
+      try:
+        aws_set_ec2_asg_max_min_by_name(name=name, min_size=min_size)
+      except Exception as e:
+        if max_size>=0:
+          aws_set_ec2_asg_max_min_by_name(name=name, max_size=max_size)
+          aws_set_ec2_asg_max_min_by_name(name=name, min_size=min_size)
 
-  if min_size>=0:
-    print("min size: "+aws_set_ec2_asg_max_min_by_name(name=name, min_size=min_size))
+        else:
+          Exception(str(e))
+
+    if max_size>=0:
+      try:
+        aws_set_ec2_asg_max_min_by_name(name=name, max_size=max_size)
+      except Exception as e:
+        if min_size>=0:
+          aws_set_ec2_asg_max_min_by_name(name=name, min_size=min_size)
+          aws_set_ec2_asg_max_min_by_name(name=name, max_size=max_size)
+        else:
+          Exception(str(e))
+  except Exception as e:
+    return str(e)
 
   try:
     response = autoscaling_client.set_desired_capacity(
