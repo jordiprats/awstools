@@ -2297,8 +2297,68 @@ def rds():
 
 @rds.command()
 @click.argument('name', default='', type=str)
+@click.option('--sure', is_flag=True, default=False, help='shut up BITCH! I known what I\'m doing')
+def start(name, sure):
+  global rds_client
+  """start db instances"""
+
+  if not rds_client:
+    init_rds_client()
+
+  dbinstances = aws_acm_list_db_instances(name)
+
+  for dbinstance in dbinstances:
+    # print(str(dbinstance))
+    if sure:
+      response = rds_client.start_db_instance(DBInstanceIdentifier=dbinstance['DBInstanceIdentifier'])
+    else:
+      response = { 'ResponseMetadata': { 'RequestId': dbinstance['DBInstanceStatus']+" (use --sure to start)" } }
+    print("{: <50} {: <20} {}".format(dbinstance['DBInstanceIdentifier'], dbinstance['Engine'], response['ResponseMetadata']['RequestId']))
+
+@rds.command()
+@click.argument('name', default='', type=str)
+@click.option('--sure', is_flag=True, default=False, help='shut up BITCH! I known what I\'m doing')
+def stop(name, sure):
+  global rds_client
+  """stop db instances"""
+
+  if not rds_client:
+    init_rds_client()
+
+  dbinstances = aws_acm_list_db_instances(name)
+
+  for dbinstance in dbinstances:
+    # print(str(dbinstance))
+    if sure:
+      response = rds_client.stop_db_instance(DBInstanceIdentifier=dbinstance['DBInstanceIdentifier'])
+    else:
+      response = { 'ResponseMetadata': { 'RequestId': dbinstance['DBInstanceStatus']+" (use --sure to stop)" } }
+    print("{: <50} {: <20} {}".format(dbinstance['DBInstanceIdentifier'], dbinstance['Engine'], response['ResponseMetadata']['RequestId']))
+
+@rds.command()
+@click.argument('name', default='', type=str)
+@click.option('--sure', is_flag=True, default=False, help='shut up BITCH! I known what I\'m doing')
+def reboot(name, sure):
+  global rds_client
+  """reboot db instances"""
+
+  if not rds_client:
+    init_rds_client()
+
+  dbinstances = aws_acm_list_db_instances(name)
+
+  for dbinstance in dbinstances:
+    # print(str(dbinstance))
+    if sure:
+      response = rds_client.reboot_db_instance(DBInstanceIdentifier=dbinstance['DBInstanceIdentifier'])
+    else:
+      response = { 'ResponseMetadata': { 'RequestId': dbinstance['DBInstanceStatus']+" (use --sure to reboot)" } }
+    print("{: <50} {: <20} {}".format(dbinstance['DBInstanceIdentifier'], dbinstance['Engine'], response['ResponseMetadata']['RequestId']))
+
+@rds.command()
+@click.argument('name', default='', type=str)
 def list(name):
-  """list dbs instances"""
+  """list db instances"""
 
   dbinstances = aws_acm_list_db_instances(name)
 
