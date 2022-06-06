@@ -2312,7 +2312,10 @@ def start(name, sure):
     if sure:
       response = rds_client.start_db_instance(DBInstanceIdentifier=dbinstance['DBInstanceIdentifier'])
     else:
-      response = { 'ResponseMetadata': { 'RequestId': dbinstance['DBInstanceStatus']+" (use --sure to start)" } }
+      try:
+        response = { 'ResponseMetadata': { 'RequestId': dbinstance['DBInstanceStatus']+" (use --sure to start)" } }
+      except Exception as e:
+        response = { 'ResponseMetadata': { 'RequestId': str(e) } }
     print("{: <50} {: <20} {}".format(dbinstance['DBInstanceIdentifier'], dbinstance['Engine'], response['ResponseMetadata']['RequestId']))
 
 @rds.command()
@@ -2332,7 +2335,10 @@ def stop(name, sure):
     if sure:
       response = rds_client.stop_db_instance(DBInstanceIdentifier=dbinstance['DBInstanceIdentifier'])
     else:
-      response = { 'ResponseMetadata': { 'RequestId': dbinstance['DBInstanceStatus']+" (use --sure to stop)" } }
+      try:
+        response = { 'ResponseMetadata': { 'RequestId': dbinstance['DBInstanceStatus']+" (use --sure to stop)" } }
+      except Exception as e:
+        response = { 'ResponseMetadata': { 'RequestId': str(e) } }
     print("{: <50} {: <20} {}".format(dbinstance['DBInstanceIdentifier'], dbinstance['Engine'], response['ResponseMetadata']['RequestId']))
 
 @rds.command()
@@ -2352,7 +2358,10 @@ def reboot(name, sure):
     if sure:
       response = rds_client.reboot_db_instance(DBInstanceIdentifier=dbinstance['DBInstanceIdentifier'])
     else:
-      response = { 'ResponseMetadata': { 'RequestId': dbinstance['DBInstanceStatus']+" (use --sure to reboot)" } }
+      try:
+        response = { 'ResponseMetadata': { 'RequestId': dbinstance['DBInstanceStatus']+" (use --sure to reboot)" } }
+      except Exception as e:
+        response = { 'ResponseMetadata': { 'RequestId': str(e) } }
     print("{: <50} {: <20} {}".format(dbinstance['DBInstanceIdentifier'], dbinstance['Engine'], response['ResponseMetadata']['RequestId']))
 
 @rds.command()
