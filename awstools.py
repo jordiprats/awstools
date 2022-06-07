@@ -2373,7 +2373,10 @@ def list(name):
 
   for dbinstance in dbinstances:
     # print(str(dbinstance))
-    print("{: <50} {: <20} {: <20} {}".format(dbinstance['DBInstanceIdentifier'], dbinstance['Engine'], dbinstance['DBInstanceStatus'], str(dbinstance['DBParameterGroups'])))
+    dbparametergroups = ''
+    for dbpg in dbinstance['DBParameterGroups']:
+      dbparametergroups += dbpg['DBParameterGroupName']+'('+dbpg['ParameterApplyStatus']+') '
+    print("{: <50} {: <20} {: <20} {}".format(dbinstance['DBInstanceIdentifier'], dbinstance['Engine'], dbinstance['DBInstanceStatus'], dbparametergroups))
 
 @rds.group()
 def snapshots():
