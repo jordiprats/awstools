@@ -1,5 +1,9 @@
 site_name: awstools
-theme: readthedocs
+theme: 
+    name: readthedocs
+    navigation_depth: 8
+    nav_style: dark
+    collapse_navigation: False
 
 docs_dir: docs
 
