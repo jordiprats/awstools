@@ -14,4 +14,4 @@ jobs:
       - run: pip install mkdocs
       - run: pip install mkdocs-click
       - run: export PYTHONPATH=$(pwd)
-      - run: mkdocs gh-deploy --force --clean --verbose
+      - run: bash -c "PYTHONPATH=$PWD mkdocs gh-deploy --force --clean --verbose"
