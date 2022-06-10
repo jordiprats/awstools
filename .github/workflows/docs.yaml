@@ -13,5 +13,6 @@ jobs:
           python-version: 3.x
       - run: pip install mkdocs
       - run: pip install mkdocs-click
+      - run: pip install -r requirements.txt
       - run: export PYTHONPATH=$(pwd)
       - run: bash -c "PYTHONPATH=$PWD mkdocs gh-deploy --force --clean --verbose"
