@@ -1,6 +1,6 @@
 # awstools
 
-[awstools Documentation](https://jordiprats.github.io/awstools/)
+[📚 Documentation](https://jordiprats.github.io/awstools/)
 
 ## configuration file
 
