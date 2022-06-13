@@ -350,6 +350,45 @@ def cpucredits(name):
                         cpucredits['InstanceCreditSpecifications'][0]['CpuCredits'])
                       )
 
+def get_nat_gateway_name(nat_gateway):
+  name = '-'
+  try:
+    for tag in nat_gateway['Tags']:
+      if tag['Key']=='Name':
+        name = tag['Value']
+        break
+  except:
+    pass
+  return name
+
+@ec2.command()
+@click.argument('name', default='')
+@click.option('--no-title', is_flag=True, default=False, help='don\'t show column description')
+def nat_gateways(name, no_title):
+  """ list NAT Gateways """
+  global ec2_client
+
+  if not ec2_client:
+    init_ec2_client()
+
+  response = ec2_client.describe_nat_gateways()
+
+  format_str="{: <30} {: <30} {: <30} {: <30} {: <30} {}"
+  if not no_title:
+    print(format_str.format("Name", "ID", "State", "Public IP", "Private IP", "VPC ID"))
+
+
+  try:
+    for gateway in response['NatGateways']:
+      gw_name = get_nat_gateway_name(gateway)
+      if name != '' and name not in gw_name:
+        continue
+      print(format_str.format(gw_name, gateway['NatGatewayId'], gateway['State'], gateway['NatGatewayAddresses'][0]['PublicIp'], gateway['NatGatewayAddresses'][0]['PrivateIp'], gateway['VpcId']))
+      
+
+  except:
+    print("No NAT Gateways found")
+
 @ec2.command()
 @click.argument('name', default='')
 @click.option('--no-title', is_flag=True, default=False, help='don\'t show column description')
