@@ -219,7 +219,7 @@ def aws_search_ec2_instances_by_name(name):
 
 def print_instance(instance_name, instance_id, instance_ip, instance_launchtime, instance_keyname, instance_state=None):
   if instance_state:
-    print("{: <60} {: <20} {: <20} {: <20} {}    {}".format(instance_name, instance_ip, instance_id, instance_state, instance_launchtime, instance_keyname))
+    print("{: <60} {: <20} {: <20} {}    {}    {}".format(instance_name, instance_ip, instance_id, instance_launchtime, instance_keyname, instance_state))
   else:
     print("{: <60} {: <20} {: <20} {}    {}".format(instance_name, instance_ip, instance_id, instance_launchtime, instance_keyname ))
 
@@ -560,7 +560,7 @@ def cssh(host, command, no_instance_id, ip):
 @click.argument('target', default='~')
 @click.option('--no-instance-id', is_flag=True, default=False, help='connect to any host that matches')
 @click.option('--ip', default=None, help='IP to use for ssh')
-def scp(host, file, target,no_instance_id):
+def scp(host, file, target, no_instance_id, ip):
   """ copy data from/to EC2 instance by name"""
   global set_debug
 
@@ -988,7 +988,7 @@ def aws_asg_instance_refresh_by_name(name):
   except Exception as e:
     return str(e)
 
-def ec2_asg_set_health(name, healthy=True):
+def ec2_asg_set_health(name, healthy=True, ip=None):
   global autoscaling_client
 
   if not autoscaling_client:
@@ -1007,15 +1007,15 @@ def ec2_asg_set_health(name, healthy=True):
   for reservation in reservations:
     for instance in reservation["Instances"]:
       if instance['State']['Name'] == 'running':
-        setheath_response = autoscaling_client.set_instance_health(
+        sethealth_response = autoscaling_client.set_instance_health(
                                           InstanceId=instance['InstanceId'],
                                           HealthStatus=set_health,
                                           ShouldRespectGracePeriod=False
                                         )
-        if setheath_response['ResponseMetadata']['HTTPStatusCode']!=200:
+        if sethealth_response['ResponseMetadata']['HTTPStatusCode']!=200:
           print("ERROR set_instance_health: "+str(response['ResponseMetadata']['HTTPStatusCode']))
         else:
-          print_instance(ec2_get_instance_name(instance), ec2_get_ip(instance, ip), instance['InstanceId'], instance['LaunchTime'], instance['KeyName'], "Healthy: "+str(setheath_response['ResponseMetadata']['RequestId']))
+          print_instance(ec2_get_instance_name(instance), ec2_get_ip(instance, ip), instance['InstanceId'], instance['LaunchTime'], instance['KeyName'], "set "+set_health+": "+str(sethealth_response['ResponseMetadata']['RequestId']))
 
 @ec2.group()
 def asg():
@@ -1027,7 +1027,7 @@ def asg():
 @click.option('--ip', default=None, help='IP to show')
 def set_healthy(name, ip):
   """ set healthy instances """
-  ec2_asg_set_health(name, healthy=True)
+  ec2_asg_set_health(name, healthy=True, ip=ip)
 
 
 @asg.command()
@@ -1035,7 +1035,7 @@ def set_healthy(name, ip):
 @click.option('--ip', default=None, help='IP to show')
 def set_unhealthy(name, ip):
   """ set unhealthy instances """
-  ec2_asg_set_health(name, healthy=False)
+  ec2_asg_set_health(name, healthy=False, ip=ip)
 
 @asg.command()
 @click.argument('name', default='')
@@ -1201,15 +1201,15 @@ def set_min(name, min):
 @click.option('--min-size', default=-1, help='ASG min size', type=int)
 @click.option('--honor-cooldown', is_flag=True, default=False, help='honor cooldown')
 @click.option('--terminate', is_flag=True, default=False, help='terminate instances')
-@click.option('--fix', is_flag=True, default=False, help='set min and max size to capacity')
-def set_capacity(name, capacity, max_size, min_size, honor_cooldown, terminate, fix):
+@click.option('--readjust', is_flag=True, default=False, help='set min and max size to capacity')
+def set_capacity(name, capacity, max_size, min_size, honor_cooldown, terminate, readjust):
   """ set ASG desired capacity (optionally can also set max and min size)"""
   records = aws_search_ec2_asg_by_name(name)
 
   if not records:
     sys.exit('ERROR: ASGs not found')
 
-  if fix:
+  if readjust:
     min_size = capacity
     max_size = capacity
 
