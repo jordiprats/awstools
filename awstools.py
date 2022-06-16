@@ -927,8 +927,6 @@ def aws_set_ec2_asg_max_min_by_name(name, max_size=-1, min_size=-1):
 
     return "updated min size"
 
-  
-
 def aws_set_capacity_ec2_asg_by_name(name, max_size, min_size, capacity, honor_cooldown):
   global autoscaling_client
 
@@ -1024,9 +1022,33 @@ def asg():
 
 @asg.command()
 @click.argument('name')
+@click.option('--no-title', is_flag=True, default=False, help='don\'t show column description')
+def list_instances(name, no_title):
+  """ list instances belonging to a specific ASG """
+  
+  response = aws_search_ec2_asg_by_name(name)
+
+  if len(response) > 1:
+    sys.exit("More than one ASG mateches {}".format(name))
+
+  out_format="{: <20} {: <20} {: <20} {: <20} {: <40} {: <60} {}"
+
+  if not no_title:
+    print(out_format.format('InstanceId', 'AvailabilityZone', 'LifecycleState', 'HealthStatus', 'LaunchTime', 'LaunchConfigurationName', 'ProtectedFromScaleIn'))
+
+  for instance in response[0]['Instances']:
+    try:
+      instance_metadata = aws_search_ec2_instances_by_id(instance['InstanceId'])
+      launch_time = str(instance_metadata[0]['Instances'][0]['LaunchTime'])
+    except:
+      launch_time = '-'
+    print(out_format.format(instance['InstanceId'], instance['AvailabilityZone'], instance['LifecycleState'], instance['HealthStatus'], launch_time, instance['LaunchConfigurationName'], instance['ProtectedFromScaleIn']))
+
+@asg.command()
+@click.argument('name')
 @click.option('--ip', default=None, help='IP to show')
 def set_healthy(name, ip):
-  """ set healthy instances """
+  """ set instances as healthy """
   ec2_asg_set_health(name, healthy=True, ip=ip)
 
 
@@ -1034,13 +1056,14 @@ def set_healthy(name, ip):
 @click.argument('name')
 @click.option('--ip', default=None, help='IP to show')
 def set_unhealthy(name, ip):
-  """ set unhealthy instances """
+  """ set instances as unhealthy """
   ec2_asg_set_health(name, healthy=False, ip=ip)
 
 @asg.command()
 @click.argument('name', default='')
 @click.option('--no-title', is_flag=True, default=False, help='don\'t show column description')
 def list(name, no_title):
+  """ list ASGs """
   if not no_title:
     print("{: <60} {: >20} {: >20} {: >20} {: >20}".format("AutoScalingGroupName", "DesiredCapacity", "MinSize", "MaxSize", "InstanceCount"))
 
@@ -1051,6 +1074,7 @@ def list(name, no_title):
 @asg.command()
 @click.argument('name', default='')
 def suspended_processes(name):
+  """ Show suspended processes of a ASG """
   for asg in aws_search_ec2_asg_by_name(name):
     list_sp = []
     for sp in asg['SuspendedProcesses']:
@@ -1062,6 +1086,7 @@ def suspended_processes(name):
 @click.argument('name')
 @click.option('--no-title', is_flag=True, default=False, help='don\'t show column description')
 def list_instance_refreshes(name, no_title):
+  """ Show status instance refresh """
   global autoscaling_client
 
   records = aws_search_ec2_asg_by_name(name)
@@ -1116,6 +1141,7 @@ def list_instance_refreshes(name, no_title):
 @asg.command()
 @click.argument('name')
 def start_instance_refresh(name):
+  """ start an instance refresh """
   records = aws_search_ec2_asg_by_name(name)
 
   if not records:
