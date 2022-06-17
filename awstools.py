@@ -1038,11 +1038,15 @@ def list_instances(name, no_title):
 
   for instance in response[0]['Instances']:
     try:
+      launchconfigurationname = instance['LaunchConfigurationName']
+    except:
+      launchconfigurationname = '-'
+    try:
       instance_metadata = aws_search_ec2_instances_by_id(instance['InstanceId'])
       launch_time = str(instance_metadata[0]['Instances'][0]['LaunchTime'])
     except:
       launch_time = '-'
-    print(out_format.format(instance['InstanceId'], instance['AvailabilityZone'], instance['LifecycleState'], instance['HealthStatus'], launch_time, instance['LaunchConfigurationName'], instance['ProtectedFromScaleIn']))
+    print(out_format.format(instance['InstanceId'], instance['AvailabilityZone'], instance['LifecycleState'], instance['HealthStatus'], launch_time, launchconfigurationname, instance['ProtectedFromScaleIn']))
 
 @asg.command()
 @click.argument('name')
