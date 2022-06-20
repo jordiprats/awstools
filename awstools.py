@@ -6,6 +6,7 @@ from botocore.client import Config
 from urllib import response
 
 import subprocess
+import datetime
 import base64
 import random
 import boto3
@@ -139,6 +140,65 @@ def role(name, prefix):
                   role['Path']+role['RoleName'],
                   role['RoleId'],
                   role['Arn']))
+
+#
+# CE - cost explorer
+#
+
+
+ce_client = None
+
+def init_ce_client():
+  global ce_client
+
+  try:
+    if set_region:
+      ce_client = boto3.client(service_name='ce', region_name=set_region)
+    else:
+      ce_client = boto3.client(service_name='ce')
+  except Exception as e:
+    sys.exit('ERROR: '+str(e))
+
+@awstools.group()
+def ce():
+  """ Cost Explorer related commands """
+  pass
+
+
+@ce.command()
+@click.option('--start', default=None, help='Sets the start date (inclusive) in YYYY-MM-DD format - default: 30 days ago')
+@click.option('--end', default=None, help='Sets the end date (exclusive) in YYYY-MM-DD format - default: today')
+@click.option('--granularity', default='DAILY', help='Sets the Amazon Web Services cost granularity', type=click.Choice(['DAILY', 'MONTHLY', 'HOURLY']))
+def get_cost(start, end, granularity):
+  global ce_client
+
+  if not ce_client:
+    init_ce_client()
+
+  now = datetime.datetime.now()
+
+  if not start:
+    one_month_ago = now + datetime.timedelta(days=-30)
+    start = one_month_ago.strftime("%Y-%m-%d")
+
+  if not end:
+    end = now.strftime("%Y-%m-%d")
+
+  response = ce_client.get_cost_and_usage(
+                                          TimePeriod={
+                                                  'Start': start,
+                                                  'End': end
+                                              },
+                                          Granularity=granularity,
+                                          Metrics=['UnblendedCost']
+                                        )
+  
+  for datapoint in response['ResultsByTime']:
+    if datapoint['TimePeriod']['Start']==datapoint['TimePeriod']['End']:
+      datapoint_time = datapoint['TimePeriod']['Start']
+    else:
+      datapoint_time = datapoint['TimePeriod']['Start'] + " to " + datapoint['TimePeriod']['End']
+    print("{} {}".format(datapoint_time, datapoint['Total']['UnblendedCost']['Amount']+' '+datapoint['Total']['UnblendedCost']['Unit']))
 
 #
 # EC2
