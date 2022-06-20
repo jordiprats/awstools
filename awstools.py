@@ -1410,6 +1410,35 @@ def list(name, no_title):
         # print(str(sg))
         print(out_format.format(lb['LoadBalancerName'], lb['Type'], lb['Scheme'], lb['State']['Code'], lb['DNSName']) )
 
+@lb.command()
+@click.argument('name')
+@click.option('--sure', is_flag=True, default=False, help='shut up BITCH! I known what I\'m doing')
+def delete(name, sure):
+  """ Delete EC2 Load Balancers """
+  global ec2_lb2_client
+
+  if not ec2_lb2_client:
+    init_ec2_lb2_client()
+
+  paginator = ec2_lb2_client.get_paginator('describe_load_balancers')
+  dsg_iterator = paginator.paginate()
+
+  out_format = "{: <45} {: <20} {: <20} {}"
+
+  for page in dsg_iterator:
+    for lb in page['LoadBalancers']:
+      if name in lb['LoadBalancerName']:
+        if not sure:
+          response = 'use --sure to delete'
+        else:
+          delete_response = response = ec2_lb2_client.delete_load_balancer(LoadBalancerArn=lb['LoadBalancerArn'])
+          try:
+            response = 'deleted ' + delete_response['ResponseMetadata']['RequestId']
+          except Exception as e:
+            response = str(e)
+        print(out_format.format(lb['LoadBalancerName'], lb['Type'], lb['DNSName'], response) )
+
+
 #
 # EC2 SG
 #
