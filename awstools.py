@@ -1231,15 +1231,15 @@ def set_min(name, min):
 @click.option('--min-size', default=-1, help='ASG min size', type=int)
 @click.option('--honor-cooldown', is_flag=True, default=False, help='honor cooldown')
 @click.option('--terminate', is_flag=True, default=False, help='terminate instances')
-@click.option('--readjust', is_flag=True, default=False, help='set min and max size to capacity')
-def set_capacity(name, capacity, max_size, min_size, honor_cooldown, terminate, readjust):
+@click.option('--force', is_flag=True, default=False, help='set min and max size to capacity')
+def set_capacity(name, capacity, max_size, min_size, honor_cooldown, terminate, force):
   """ set ASG desired capacity (optionally can also set max and min size)"""
   records = aws_search_ec2_asg_by_name(name)
 
   if not records:
     sys.exit('ERROR: ASGs not found')
 
-  if readjust:
+  if force:
     min_size = capacity
     max_size = capacity
 
@@ -2018,10 +2018,14 @@ def list():
   """list parameters"""
 
   for parameter in aws_ssm_list_parameters():
+    try:
+      keyid = parameter['KeyId']
+    except:
+      keyid = ''
     if 'Description' in parameter.keys():
-      print("{: <60} {: <15} {: <15} {: <80} {}".format(parameter['Name'], parameter['Type'], parameter['KeyId'], parameter['Description'], str(parameter['LastModifiedDate'])))
+      print("{: <60} {: <15} {: <15} {: <80} {}".format(parameter['Name'], parameter['Type'], keyid, parameter['Description'], str(parameter['LastModifiedDate'])))
     else:
-      print("{: <60} {: <15} {: <15} {: <80} {}".format(parameter['Name'], parameter['Type'], parameter['KeyId'], '', str(parameter['LastModifiedDate'])))
+      print("{: <60} {: <15} {: <15} {: <80} {}".format(parameter['Name'], parameter['Type'], keyid, '', str(parameter['LastModifiedDate'])))
 
 @ssm.command()
 @click.argument('parameter')
