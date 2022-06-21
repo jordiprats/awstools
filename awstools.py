@@ -198,7 +198,7 @@ def get_cost(start, end, granularity):
       datapoint_time = datapoint['TimePeriod']['Start']
     else:
       datapoint_time = datapoint['TimePeriod']['Start'] + " to " + datapoint['TimePeriod']['End']
-    print("{} {}".format(datapoint_time, datapoint['Total']['UnblendedCost']['Amount']+' '+datapoint['Total']['UnblendedCost']['Unit']))
+    print("{: <40} {}".format(datapoint_time, datapoint['Total']['UnblendedCost']['Amount']+' '+datapoint['Total']['UnblendedCost']['Unit']))
 
 #
 # EC2
