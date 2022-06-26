@@ -1521,6 +1521,72 @@ def route53():
   pass
 
 @route53.command()
+@click.argument('fqdn')
+@click.option('--public', is_flag=True, default=False, help='show only public zones')
+@click.option('--private', is_flag=True, default=False, help='show only private zones')
+@click.option('--exact', is_flag=True, default=False, help='show only exact matches')
+@click.option('--no-title', is_flag=True, default=False, help='don\'t show column description')
+@click.option('--type', multiple=True, default=[], help='show only this type')
+def get_record(fqdn, public, private, exact, no_title, type):
+  """ Fins DNS record """
+  global route53_client
+
+  if not route53_client:
+    init_route53_client()
+
+  out_format = "{: <20} {: <10} {: <60} {: <20} {}"
+
+  if not no_title:
+    print(out_format.format('Zone', 'Private', 'Record', 'Type', 'Values'))
+
+  zone_paginator = route53_client.get_paginator('list_hosted_zones')
+  zone_iterator = zone_paginator.paginate()
+
+  for page in zone_iterator:
+    for hz in page['HostedZones']:
+      if hz['Name'][:-1] in fqdn:
+
+        if public and hz['Config']['PrivateZone']:
+          continue
+        if private and not hz['Config']['PrivateZone']:
+          continue
+
+        record_paginator = route53_client.get_paginator('list_resource_record_sets')
+        record_iterator = record_paginator.paginate(HostedZoneId=hz['Id'])
+
+        for page in record_iterator:
+          for rs in page['ResourceRecordSets']:
+            if exact:
+              if fqdn != rs['Name'][:-1]:
+                continue
+            else:
+              if not fqdn in rs['Name']:
+                continue
+
+            if 'AliasTarget' in rs.keys():
+              rs_values = rs['AliasTarget']['DNSName']
+              rs_type = 'AliasTarget'
+            else:
+              list_values=[]
+              for each in rs['ResourceRecords']:
+                list_values.append(each['Value'])
+              rs_values=','.join(list_values)
+              rs_type=rs['Type']
+
+            rs_isprivate = 'True' if hz['Config']['PrivateZone'] else 'False'
+
+            show = True
+            if type:
+              show = False
+              for each_type in type:
+                if each_type == rs_type:
+                  show = True
+                  break
+
+            if show:
+              print(out_format.format(hz['Name'], rs_isprivate, rs['Name'], rs_type, rs_values))
+
+@route53.command()
 @click.option('--max-zones', default='100', help='max number of zones', type=str)
 @click.option('--public', is_flag=True, default=False, help='show only public zones')
 @click.option('--private', is_flag=True, default=False, help='show only private zones')

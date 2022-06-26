@@ -13,13 +13,13 @@ with open('requirements.txt') as requirementstxt:
 setuptools.setup(
   name = 'awstools',
   scripts=['awstools', 'awsh'],
-  version = '2020.11.13',
+  version = '2022.06.23',
   author = 'Jordi Prats',
   author_email = 'jprats@systemadmin.es',
-  description = 'AWS ssh',
+  description = 'cli utility to query AWS',
   long_description=long_description,
   long_description_content_type='text/markdown',
-  url = 'https://github.com/jordiprats/python-awsh',
+  url = 'https://github.com/jordiprats/awstools',
   install_requires=requires,
   license="Apache License 2.0",
   classifiers = [
