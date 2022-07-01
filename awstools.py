@@ -1364,13 +1364,22 @@ def current_price(instance_type, product):
                                                           InstanceTypes=[instance_type],
                                                           ProductDescriptions=[each_product],
                                                           AvailabilityZone=az['ZoneName']
-                                                        )                                                  
+                                                        )
+      try:
+        spot_price = spot_response['SpotPriceHistory'][0]['SpotPrice']
+      except:
+        spot_price = '-'
+      
+      try:
+        spot_ts = spot_response['SpotPriceHistory'][0]['Timestamp']
+      except:
+        spot_ts = '-'
       print(out_format.format(
                                 instance_type, 
                                 each_product, 
                                 az['ZoneName'], 
-                                spot_response['SpotPriceHistory'][0]['SpotPrice'], 
-                                spot_response['SpotPriceHistory'][0]['Timestamp']
+                                spot_price, 
+                                spot_ts
                               ))
 
 #
