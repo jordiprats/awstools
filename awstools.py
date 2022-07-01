@@ -710,7 +710,7 @@ def stop(name, sure):
 
 
 @ec2.command()
-@click.argument('name')
+@click.argument('name', nargs=-1, required=True)
 @click.option('--sure', is_flag=True, default=False, help='shut up BITCH! I known what I\'m doing')
 def terminate(name, sure):
   """ terminate EC2 instances by name """
@@ -719,27 +719,28 @@ def terminate(name, sure):
   if not ec2_client:
     init_ec2_client()
 
-  if name.startswith('i-'):
-    reservations = aws_search_ec2_instances_by_id(name)
-  else:
-    reservations = aws_search_ec2_instances_by_name(name)
-  
-  if not reservations:
-    reservations = aws_search_ec2_instances_by_name('*'+name+'*')
+  for each_name in name:
+    if each_name.startswith('i-'):
+      reservations = aws_search_ec2_instances_by_id(each_name)
+    else:
+      reservations = aws_search_ec2_instances_by_name(each_name)
+    
+    if not reservations:
+      reservations = aws_search_ec2_instances_by_name('*'+each_name+'*')
 
-  for reservation in reservations:
-    for instance in reservation["Instances"]:
-      if instance['State']['Name']!='terminated':
-        if sure:
-          try:
-            ec2_terminate_instances_response = ec2_client.terminate_instances(InstanceIds=[instance["InstanceId"]])             
-            termination_id = ec2_terminate_instances_response['ResponseMetadata']['RequestId']
-            print_instance(ec2_get_instance_name(instance), ec2_get_ip(instance), instance['InstanceId'], instance['LaunchTime'], instance['KeyName'], "terminating: "+str(termination_id))
-          except Exception as e:
-            termination_response = str(e)
-            print_instance(ec2_get_instance_name(instance), ec2_get_ip(instance), instance['InstanceId'], instance['LaunchTime'], instance['KeyName'], "error terminating: "+str(termination_response))
-        else:
-          print_instance(ec2_get_instance_name(instance), ec2_get_ip(instance), instance['InstanceId'], instance['LaunchTime'], instance['KeyName'], instance['State']['Name']+" (use --sure to terminate)")
+    for reservation in reservations:
+      for instance in reservation["Instances"]:
+        if instance['State']['Name']!='terminated':
+          if sure:
+            try:
+              ec2_terminate_instances_response = ec2_client.terminate_instances(InstanceIds=[instance["InstanceId"]])             
+              termination_id = ec2_terminate_instances_response['ResponseMetadata']['RequestId']
+              print_instance(ec2_get_instance_name(instance), ec2_get_ip(instance), instance['InstanceId'], instance['LaunchTime'], instance['KeyName'], "terminating: "+str(termination_id))
+            except Exception as e:
+              termination_response = str(e)
+              print_instance(ec2_get_instance_name(instance), ec2_get_ip(instance), instance['InstanceId'], instance['LaunchTime'], instance['KeyName'], "error terminating: "+str(termination_response))
+          else:
+            print_instance(ec2_get_instance_name(instance), ec2_get_ip(instance), instance['InstanceId'], instance['LaunchTime'], instance['KeyName'], instance['State']['Name']+" (use --sure to terminate)")
 
 def ec2_ami_describe(ami):
   global ec2_client
@@ -935,7 +936,7 @@ def init_autoscaling_client():
   except Exception as e:
     sys.exit('ERROR: '+str(e))
 
-def aws_search_ec2_asg_by_name(name):
+def aws_search_ec2_asg_by_name(name, exact=False):
   global autoscaling_client
   max_items = 50
   records = []
@@ -943,17 +944,18 @@ def aws_search_ec2_asg_by_name(name):
   if not autoscaling_client:
     init_autoscaling_client()
 
-  batch = autoscaling_client.describe_auto_scaling_groups(MaxRecords=max_items)
-  
-  for asg in batch['AutoScalingGroups']:
-    if name in asg['AutoScalingGroupName']:
-      records.append(asg)
-  while 'NextToken' in batch.keys():
-    batch = autoscaling_client.describe_auto_scaling_groups(MaxRecords=max_items, NextToken=batch['NextToken'])
+  paginator = autoscaling_client.get_paginator('describe_auto_scaling_groups')
+  dsg_iterator = paginator.paginate()
 
-    for asg in batch['AutoScalingGroups']:
-      if name in asg['AutoScalingGroupName']:
-        records.append(asg)
+  for page in dsg_iterator:
+    for asg in page['AutoScalingGroups']:
+      if exact:
+        if name == asg['AutoScalingGroupName']:
+          records.append(asg)
+      else:
+        if name in asg['AutoScalingGroupName']:
+          records.append(asg)
+
   return records
 
 def aws_set_ec2_asg_max_min_by_name(name, max_size=-1, min_size=-1):
@@ -1086,15 +1088,15 @@ def asg():
 def list_instances(name, no_title):
   """ list instances belonging to a specific ASG """
   
-  response = aws_search_ec2_asg_by_name(name)
+  response = aws_search_ec2_asg_by_name(name, exact=True)
 
   if len(response) > 1:
     sys.exit("More than one ASG mateches {}".format(name))
 
-  out_format="{: <20} {: <20} {: <20} {: <20} {: <40} {: <60} {}"
+  out_format="{: <20} {: <12} {: <18} {: <18} {: <35} {: <60} {}"
 
   if not no_title:
-    print(out_format.format('InstanceId', 'AvailabilityZone', 'LifecycleState', 'HealthStatus', 'LaunchTime', 'LaunchConfigurationName', 'ProtectedFromScaleIn'))
+    print(out_format.format('InstanceId', 'AZ', 'Lifecycle', 'Health', 'LaunchTime', 'LaunchConfiguration', 'ScaleInProtected'))
 
   for instance in response[0]['Instances']:
     try:
