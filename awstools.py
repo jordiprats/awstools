@@ -1374,6 +1374,7 @@ def current_price(instance_type, product):
         spot_ts = spot_response['SpotPriceHistory'][0]['Timestamp']
       except:
         spot_ts = '-'
+      
       print(out_format.format(
                                 instance_type, 
                                 each_product, 
