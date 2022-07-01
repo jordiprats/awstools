@@ -1,5 +1,7 @@
 # awstools
 
+Provides a small set of commands to manage the most commonly used EC2 resources
+
 [📚 Documentation](https://jordiprats.github.io/awstools/)
 
 ## configuration file
