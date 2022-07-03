@@ -6,7 +6,7 @@ Provides a small set of commands to manage the most commonly used EC2 resources
 
 ## configuration file
 
-Create the file **~/.awstools/config** with the following content:
+You can set some defaults using the **~/.awstools/config** file:
 
 ```
 [aws]
@@ -17,10 +17,12 @@ useIP=PublicIpAddress
 
 You can set the following options:
 
-* region: Default region to use
-* useIP: Default IP to show for EC2 instances (**PublicIpAddress** or **PrivateIpAddress**)
+* **region**: Default region to use
+* **useIP**: Default IP to show for EC2 instances (**PublicIpAddress** or **PrivateIpAddress**)
 
 ## Generate docs
+
+If mkdocs doesn't recognize awstools, set **PYTHONPATH** to the base directory:
 
 ```
 PYTHONPATH=$PWD mkdocs serve
