@@ -381,6 +381,8 @@ def az(region):
 
   if region:
     az_client = boto3.client(service_name='ec2', region_name=region)
+  elif set_region:
+    az_client = boto3.client(service_name='ec2', region_name=set_region)
   else:
     az_client = boto3.client(service_name='ec2')
   
