@@ -277,11 +277,11 @@ def aws_search_ec2_instances_by_name(name):
 
   return response["Reservations"]
 
-def print_instance(instance_name, instance_id, instance_type, instance_ip, instance_launchtime, instance_keyname, instance_state=None):
+def print_instance(instance_name, instance_id, instance_type, instance_ip, instance_launchtime, instance_keyname, instance_state=None, instance_az='-'):
   if instance_state:
-    print("{: <60} {: <20} {: <20} {: ^15} {}    {}    {}".format(instance_name, instance_ip, instance_id, instance_type, instance_launchtime, instance_keyname, instance_state))
+    print("{: <60} {: <20} {: <20} {: ^15} {: ^12} {}    {}    {}".format(instance_name, instance_ip, instance_id, instance_type, instance_az, instance_launchtime, instance_keyname, instance_state))
   else:
-    print("{: <60} {: <20} {: <20} {: ^15} {}    {}".format(instance_name, instance_ip, instance_id, instance_type, instance_launchtime, instance_keyname ))
+    print("{: <60} {: <20} {: <20} {: ^15} {: ^12} {}    {}".format(instance_name, instance_ip, instance_id, instance_type, instance_az, instance_launchtime, instance_keyname ))
 
 @awstools.group()
 def ec2():
@@ -301,7 +301,13 @@ def ec2_get_instance_name(instance):
   except:
     return '-'            
 
-def ec2_get_ip(instance, ip_type=None):
+def ec2_get_instance_az(instance):
+  try:
+    return instance['Placement']['AvailabilityZone']
+  except:
+    return '-'
+
+def ec2_get_instance_ip(instance, ip_type=None):
   global set_debug, ip_to_use
   try:
     if ip_type:
@@ -503,20 +509,39 @@ def ec2_list_instances(ctx, name, all, connect, any, terminate, ip):
           termination_response = aws_ec2_terminate_instances_by_id([instance['InstanceId']])
         except Exception as e:
           termination_response['ResponseMetadata']['RequestId'] = e
-        print_instance(ec2_get_instance_name(instance), ec2_get_ip(instance, ip), instance['InstanceId'], instance['InstanceType'], instance['LaunchTime'], instance['KeyName'], "terminating: "+str(termination_response['ResponseMetadata']['RequestId']))
+        print_instance(
+                        instance_name=ec2_get_instance_name(instance), 
+                        instance_ip=ec2_get_instance_ip(instance, ip), 
+                        instance_id=instance['InstanceId'], 
+                        instance_type=instance['InstanceType'],
+                        instance_az=ec2_get_instance_az(instance),
+                        instance_launchtime=instance['LaunchTime'], 
+                        instance_keyname=instance['KeyName'], 
+                        instance_state="terminating: "+str(termination_response['ResponseMetadata']['RequestId'])
+                      )
         
   else:
     for reservation in reservations:
       for instance in reservation["Instances"]:
         # print(str(instance))
         if all:
-          print_instance(ec2_get_instance_name(instance), ec2_get_ip(instance, ip), instance['InstanceId'], instance['InstanceType'], instance['LaunchTime'], instance['KeyName'], instance['State']['Name'])
+          print_instance(
+                          instance_name=ec2_get_instance_name(instance), 
+                          instance_ip=ec2_get_instance_ip(instance, ip), 
+                          instance_id=instance['InstanceId'], 
+                          instance_type=instance['InstanceType'],
+                          instance_az=ec2_get_instance_az(instance),
+                          instance_launchtime=instance['LaunchTime'], 
+                          instance_keyname=instance['KeyName'], 
+                          instance_state=instance['State']['Name'])
         else:
           if instance['State']['Name']=='running':
-            print_instance(instance_name=ec2_get_instance_name(instance),
-                            instance_ip=ec2_get_ip(instance, ip), 
+            print_instance(
+                            instance_name=ec2_get_instance_name(instance),
+                            instance_ip=ec2_get_instance_ip(instance, ip), 
                             instance_id=instance['InstanceId'], 
                             instance_type=instance['InstanceType'], 
+                            instance_az=ec2_get_instance_az(instance),
                             instance_launchtime=instance['LaunchTime'], 
                             instance_keyname=instance['KeyName']
                           )
@@ -567,7 +592,7 @@ def ssh(ctx, host, command, any, ip):
   for reservation in reservations:
     for instance in reservation["Instances"]:
       if instance['State']['Name']=='running':
-        candidates.append(ec2_get_ip(instance, ip))
+        candidates.append(ec2_get_instance_ip(instance, ip))
 
   if len(candidates) > 1 and not any:
     if set_debug:
@@ -617,7 +642,7 @@ def cssh(host, command, no_instance_id, ip):
         if not no_instance_id:
           print("{: <60} {}".format(ec2_get_instance_name(instance), instance['InstanceId']))
         try:
-          subprocess.check_call(['ssh', user_to_ssh+'@'+ec2_get_ip(instance, ip), command])
+          subprocess.check_call(['ssh', user_to_ssh+'@'+ec2_get_instance_ip(instance, ip), command])
         except Exception as e:
           if set_debug:
             print(str(e))
@@ -646,7 +671,7 @@ def scp(host, file, target, no_instance_id, ip):
         if not no_instance_id:
           print("{: <60} {}".format(ec2_get_instance_name(instance), instance['InstanceId']))
         try:
-          subprocess.check_call(['scp', file, user_to_ssh+'@'+ec2_get_ip(instance, ip)+':'+target])
+          subprocess.check_call(['scp', file, user_to_ssh+'@'+ec2_get_instance_ip(instance, ip)+':'+target])
         except Exception as e:
           if set_debug:
             print(str(e))
@@ -676,12 +701,39 @@ def start(name, sure):
           try:
             ec2_start_instances_response = ec2_client.start_instances(InstanceIds=[instance["InstanceId"]])             
             start_id = ec2_start_instances_response['ResponseMetadata']['RequestId']
-            print_instance(ec2_get_instance_name(instance), ec2_get_ip(instance), instance['InstanceId'], instance['InstanceType'], instance['LaunchTime'], instance['KeyName'], "starting: "+str(start_id))
+            print_instance(
+                            instance_name=ec2_get_instance_name(instance), 
+                            instance_ip=ec2_get_instance_ip(instance), 
+                            instance_id=instance['InstanceId'], 
+                            instance_type=instance['InstanceType'], 
+                            instance_az=ec2_get_instance_az(instance),
+                            instance_launchtime=instance['LaunchTime'], 
+                            instance_keyname=instance['KeyName'], 
+                            instance_state="starting: "+str(start_id)
+                          )
           except Exception as e:
             start_exception = str(e)
-            print_instance(ec2_get_instance_name(instance), ec2_get_ip(instance), instance['InstanceId'], instance['InstanceType'], instance['LaunchTime'], instance['KeyName'], "error starting: "+str(start_exception))
+            print_instance(
+                            instance_name=ec2_get_instance_name(instance), 
+                            instance_ip=ec2_get_instance_ip(instance), 
+                            instance_id=instance['InstanceId'], 
+                            instance_type=instance['InstanceType'], 
+                            instance_az=ec2_get_instance_az(instance),
+                            instance_launchtime=instance['LaunchTime'], 
+                            instance_keyname=instance['KeyName'], 
+                            instance_state="error starting: "+str(start_exception)
+                          )
         else:
-          print_instance(ec2_get_instance_name(instance), ec2_get_ip(instance), instance['InstanceId'], instance['InstanceType'], instance['LaunchTime'], instance['KeyName'], instance['State']['Name']+" (use --sure to start)")
+          print_instance(
+                          instance_name=ec2_get_instance_name(instance), 
+                          instance_ip=ec2_get_instance_ip(instance), 
+                          instance_id=instance['InstanceId'], 
+                          instance_type=instance['InstanceType'], 
+                          instance_az=ec2_get_instance_az(instance),
+                          instance_launchtime=instance['LaunchTime'], 
+                          instance_keyname=instance['KeyName'], 
+                          instance_state=instance['State']['Name']+" (use --sure to start)"
+                        )
 
 
 @ec2.command()
@@ -709,12 +761,39 @@ def stop(name, sure):
           try:
             ec2_stop_instances_response = ec2_client.stop_instances(InstanceIds=[instance["InstanceId"]])             
             stop_id = ec2_stop_instances_response['ResponseMetadata']['RequestId']
-            print_instance(ec2_get_instance_name(instance), ec2_get_ip(instance), instance['InstanceId'], instance['InstanceType'], instance['LaunchTime'], instance['KeyName'], "stopping: "+str(stop_id))
+            print_instance(
+                            instance_name=ec2_get_instance_name(instance), 
+                            instance_ip=ec2_get_instance_ip(instance), 
+                            instance_id=instance['InstanceId'], 
+                            instance_type=instance['InstanceType'], 
+                            instance_az=ec2_get_instance_az(instance),
+                            instance_launchtime=instance['LaunchTime'], 
+                            instance_keyname=instance['KeyName'], 
+                            instance_state="stopping: "+str(stop_id)
+                          )
           except Exception as e:
             stop_exception = str(e)
-            print_instance(ec2_get_instance_name(instance), ec2_get_ip(instance), instance['InstanceId'], instance['InstanceType'], instance['LaunchTime'], instance['KeyName'], "error stopping: "+str(stop_exception))
+            print_instance(
+                            instance_name=ec2_get_instance_name(instance), 
+                            instance_ip=ec2_get_instance_ip(instance), 
+                            instance_id=instance['InstanceId'], 
+                            instance_type=instance['InstanceType'], 
+                            instance_az=ec2_get_instance_az(instance),
+                            instance_launchtime=instance['LaunchTime'], 
+                            instance_keyname=instance['KeyName'], 
+                            instance_state="error stopping: "+str(stop_exception)
+                          )
         else:
-          print_instance(ec2_get_instance_name(instance), ec2_get_ip(instance), instance['InstanceId'], instance['InstanceType'], instance['LaunchTime'], instance['KeyName'], instance['State']['Name']+" (use --sure to stop)")
+          print_instance(
+                          instance_name=ec2_get_instance_name(instance), 
+                          instance_ip=ec2_get_instance_ip(instance), 
+                          instance_id=instance['InstanceId'], 
+                          instance_type=instance['InstanceType'], 
+                          instance_az=ec2_get_instance_az(instance),
+                          instance_launchtime=instance['LaunchTime'], 
+                          instance_keyname=instance['KeyName'], 
+                          instance_state=instance['State']['Name']+" (use --sure to stop)"
+                        )
 
 
 @ec2.command()
@@ -743,12 +822,39 @@ def terminate(name, sure):
             try:
               ec2_terminate_instances_response = ec2_client.terminate_instances(InstanceIds=[instance["InstanceId"]])             
               termination_id = ec2_terminate_instances_response['ResponseMetadata']['RequestId']
-              print_instance(ec2_get_instance_name(instance), ec2_get_ip(instance), instance['InstanceId'], instance['InstanceType'], instance['LaunchTime'], instance['KeyName'], "terminating: "+str(termination_id))
+              print_instance(
+                              instance_name=ec2_get_instance_name(instance), 
+                              instance_ip=ec2_get_instance_ip(instance), 
+                              instance_id=instance['InstanceId'], 
+                              instance_type=instance['InstanceType'], 
+                              instance_az=ec2_get_instance_az(instance),
+                              instance_launchtime=instance['LaunchTime'], 
+                              instance_keyname=instance['KeyName'], 
+                              instance_state="terminating: "+str(termination_id)
+                            )
             except Exception as e:
               termination_response = str(e)
-              print_instance(ec2_get_instance_name(instance), ec2_get_ip(instance), instance['InstanceId'], instance['InstanceType'], instance['LaunchTime'], instance['KeyName'], "error terminating: "+str(termination_response))
+              print_instance(
+                              instance_name=ec2_get_instance_name(instance), 
+                              instance_ip=ec2_get_instance_ip(instance), 
+                              instance_id=instance['InstanceId'], 
+                              instance_type=instance['InstanceType'], 
+                              instance_az=ec2_get_instance_az(instance),
+                              instance_launchtime=instance['LaunchTime'], 
+                              instance_keyname=instance['KeyName'], 
+                              instance_state="error terminating: "+str(termination_response)
+                            )
           else:
-            print_instance(ec2_get_instance_name(instance), ec2_get_ip(instance), instance['InstanceId'], instance['InstanceType'], instance['LaunchTime'], instance['KeyName'], instance['State']['Name']+" (use --sure to terminate)")
+            print_instance(
+                            instance_name=ec2_get_instance_name(instance), 
+                            instance_ip=ec2_get_instance_ip(instance), 
+                            instance_id=instance['InstanceId'], 
+                            instance_type=instance['InstanceType'], 
+                            instance_az=ec2_get_instance_az(instance),
+                            instance_launchtime=instance['LaunchTime'], 
+                            instance_keyname=instance['KeyName'], 
+                            instance_state=instance['State']['Name']+" (use --sure to terminate)"
+                          )
 
 def ec2_ami_describe(ami):
   global ec2_client
@@ -1083,7 +1189,16 @@ def ec2_asg_set_health(name, healthy=True, ip=None):
         if sethealth_response['ResponseMetadata']['HTTPStatusCode']!=200:
           print("ERROR set_instance_health: "+str(response['ResponseMetadata']['HTTPStatusCode']))
         else:
-          print_instance(ec2_get_instance_name(instance), ec2_get_ip(instance, ip), instance['InstanceId'], instance['InstanceType'], instance['LaunchTime'], instance['KeyName'], "set "+set_health+": "+str(sethealth_response['ResponseMetadata']['RequestId']))
+          print_instance(
+                          instance_name=ec2_get_instance_name(instance), 
+                          instance_ip=ec2_get_instance_ip(instance, ip), 
+                          instance_id=instance['InstanceId'], 
+                          instance_type=instance['InstanceType'], 
+                          instance_az=ec2_get_instance_az(instance),
+                          instance_launchtime=instance['LaunchTime'], 
+                          instance_keyname=instance['KeyName'], 
+                          instance_state="set "+set_health+": "+str(sethealth_response['ResponseMetadata']['RequestId'])
+                        )
 
 @ec2.group()
 def asg():
