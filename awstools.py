@@ -1034,6 +1034,65 @@ def subnet(name):
       print("{: <30} {: <30} {: <30} {: <30} {: <30} {: <30} {}".format(subnet_name, subnet['SubnetId'], subnet['VpcId'], subnet['AvailabilityZone'], subnet['CidrBlock'], subnet['State'], subnet['AvailableIpAddressCount']))
 
 #
+# EC2 EBS
+#
+
+@ec2.group()
+def ebs():
+  """ EC2 EBS related commands """
+  pass
+
+def ec2_list_volumes(name, available):
+  global ec2_client
+
+  volumes = []
+
+  if not ec2_client:
+    init_ec2_client()
+
+  filters =[]
+
+  if available:
+    filters.append({ 'Name': 'status', 'Values': ['available'] })
+
+  paginator = ec2_client.get_paginator('describe_volumes')
+  if name:
+    iterator = paginator.paginate(Filters=filters, VolumeIds=[name])
+  else:
+    iterator = paginator.paginate(Filters=filters)
+  
+  for page in iterator:
+    for volume in page['Volumes']:
+      volumes.append(volume)
+
+  return volumes
+
+@ebs.command()
+@click.argument('name', required=False, default=None)
+@click.option('--available', is_flag=True, default=False, help='only available volumes')
+def list(name, available):
+  """ list volumes """
+
+  for volume in ec2_list_volumes(name, available):
+    print("{: <30} {: <30} {: <30} {: <30} {: <30} {: <30} {}".format(volume['VolumeId'], volume['AvailabilityZone'], volume['State'], volume['Size'], volume['SnapshotId'], volume['VolumeType'], volume['Iops']))
+
+@ebs.command()
+@click.argument('name', required=False, default=None)
+@click.option('--available', is_flag=True, default=False, help='only available volumes')
+@click.option('--sure', is_flag=True, default=False, help='shut up BITCH! I known what I\'m doing')
+def delete(name, available, sure):
+  """ delete volumes """
+
+  for volume in ec2_list_volumes(name, available):
+    if sure:
+      if not ec2_client:
+        init_ec2_client()
+      response = ec2_client.delete_volume(VolumeId=volume['VolumeId'])
+      print("{: <30} {: <30} {: <30} {: <30} {: <30} {: <30} {: <30} {}".format(volume['VolumeId'], volume['AvailabilityZone'], volume['State'], volume['Size'], volume['SnapshotId'], volume['VolumeType'], volume['Iops'], response['ResponseMetadata']['RequestId']))
+    else:
+      print("{: <30} {: <30} {: <30} {: <30} {: <30} {: <30} {: <30} {}".format(volume['VolumeId'], volume['AvailabilityZone'], volume['State'], volume['Size'], volume['SnapshotId'], volume['VolumeType'], volume['Iops'], "add --sure to delete"))
+
+#
 # EC2 ASG
 #
 
