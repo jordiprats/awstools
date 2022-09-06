@@ -7,6 +7,7 @@ from urllib import response
 
 import subprocess
 import datetime
+import requests
 import base64
 import random
 import boto3
@@ -488,7 +489,13 @@ def interfaces(name, no_title):
         count_private_ips += len(interface['PrivateIpAddresses'])
         # print(str(interface))
       print(base_format.format(ec2_get_instance_name(instance), instance['InstanceId'], count_eni, count_private_ips))
-  
+
+def ec2_get_instance_keyname(instance):
+  try:
+    return instance['KeyName']
+  except:
+    return '-'
+
 def ec2_list_instances(ctx, name, all, connect, any, terminate, ip):
   """search EC2 running instances"""
   global set_debug
@@ -516,7 +523,7 @@ def ec2_list_instances(ctx, name, all, connect, any, terminate, ip):
                         instance_type=instance['InstanceType'],
                         instance_az=ec2_get_instance_az(instance),
                         instance_launchtime=instance['LaunchTime'], 
-                        instance_keyname=instance['KeyName'], 
+                        instance_keyname=ec2_get_instance_keyname(instance), 
                         instance_state="terminating: "+str(termination_response['ResponseMetadata']['RequestId'])
                       )
         
@@ -532,7 +539,7 @@ def ec2_list_instances(ctx, name, all, connect, any, terminate, ip):
                           instance_type=instance['InstanceType'],
                           instance_az=ec2_get_instance_az(instance),
                           instance_launchtime=instance['LaunchTime'], 
-                          instance_keyname=instance['KeyName'], 
+                          instance_keyname=ec2_get_instance_keyname(instance), 
                           instance_state=instance['State']['Name'])
         else:
           if instance['State']['Name']=='running':
@@ -543,7 +550,7 @@ def ec2_list_instances(ctx, name, all, connect, any, terminate, ip):
                             instance_type=instance['InstanceType'], 
                             instance_az=ec2_get_instance_az(instance),
                             instance_launchtime=instance['LaunchTime'], 
-                            instance_keyname=instance['KeyName']
+                            instance_keyname=ec2_get_instance_keyname(instance)
                           )
 
 @ec2.command()
@@ -708,7 +715,7 @@ def start(name, sure):
                             instance_type=instance['InstanceType'], 
                             instance_az=ec2_get_instance_az(instance),
                             instance_launchtime=instance['LaunchTime'], 
-                            instance_keyname=instance['KeyName'], 
+                            instance_keyname=ec2_get_instance_keyname(instance), 
                             instance_state="starting: "+str(start_id)
                           )
           except Exception as e:
@@ -720,7 +727,7 @@ def start(name, sure):
                             instance_type=instance['InstanceType'], 
                             instance_az=ec2_get_instance_az(instance),
                             instance_launchtime=instance['LaunchTime'], 
-                            instance_keyname=instance['KeyName'], 
+                            instance_keyname=ec2_get_instance_keyname(instance), 
                             instance_state="error starting: "+str(start_exception)
                           )
         else:
@@ -731,7 +738,7 @@ def start(name, sure):
                           instance_type=instance['InstanceType'], 
                           instance_az=ec2_get_instance_az(instance),
                           instance_launchtime=instance['LaunchTime'], 
-                          instance_keyname=instance['KeyName'], 
+                          instance_keyname=ec2_get_instance_keyname(instance), 
                           instance_state=instance['State']['Name']+" (use --sure to start)"
                         )
 
@@ -768,7 +775,7 @@ def stop(name, sure):
                             instance_type=instance['InstanceType'], 
                             instance_az=ec2_get_instance_az(instance),
                             instance_launchtime=instance['LaunchTime'], 
-                            instance_keyname=instance['KeyName'], 
+                            instance_keyname=ec2_get_instance_keyname(instance), 
                             instance_state="stopping: "+str(stop_id)
                           )
           except Exception as e:
@@ -780,7 +787,7 @@ def stop(name, sure):
                             instance_type=instance['InstanceType'], 
                             instance_az=ec2_get_instance_az(instance),
                             instance_launchtime=instance['LaunchTime'], 
-                            instance_keyname=instance['KeyName'], 
+                            instance_keyname=ec2_get_instance_keyname(instance), 
                             instance_state="error stopping: "+str(stop_exception)
                           )
         else:
@@ -791,7 +798,7 @@ def stop(name, sure):
                           instance_type=instance['InstanceType'], 
                           instance_az=ec2_get_instance_az(instance),
                           instance_launchtime=instance['LaunchTime'], 
-                          instance_keyname=instance['KeyName'], 
+                          instance_keyname=ec2_get_instance_keyname(instance), 
                           instance_state=instance['State']['Name']+" (use --sure to stop)"
                         )
 
@@ -829,7 +836,7 @@ def terminate(name, sure):
                               instance_type=instance['InstanceType'], 
                               instance_az=ec2_get_instance_az(instance),
                               instance_launchtime=instance['LaunchTime'], 
-                              instance_keyname=instance['KeyName'], 
+                              instance_keyname=ec2_get_instance_keyname(instance), 
                               instance_state="terminating: "+str(termination_id)
                             )
             except Exception as e:
@@ -841,7 +848,7 @@ def terminate(name, sure):
                               instance_type=instance['InstanceType'], 
                               instance_az=ec2_get_instance_az(instance),
                               instance_launchtime=instance['LaunchTime'], 
-                              instance_keyname=instance['KeyName'], 
+                              instance_keyname=ec2_get_instance_keyname(instance), 
                               instance_state="error terminating: "+str(termination_response)
                             )
           else:
@@ -852,7 +859,7 @@ def terminate(name, sure):
                             instance_type=instance['InstanceType'], 
                             instance_az=ec2_get_instance_az(instance),
                             instance_launchtime=instance['LaunchTime'], 
-                            instance_keyname=instance['KeyName'], 
+                            instance_keyname=ec2_get_instance_keyname(instance), 
                             instance_state=instance['State']['Name']+" (use --sure to terminate)"
                           )
 
@@ -1255,7 +1262,7 @@ def ec2_asg_set_health(name, healthy=True, ip=None):
                           instance_type=instance['InstanceType'], 
                           instance_az=ec2_get_instance_az(instance),
                           instance_launchtime=instance['LaunchTime'], 
-                          instance_keyname=instance['KeyName'], 
+                          instance_keyname=ec2_get_instance_keyname(instance), 
                           instance_state="set "+set_health+": "+str(sethealth_response['ResponseMetadata']['RequestId'])
                         )
 
@@ -2021,6 +2028,14 @@ def aws_eks_describe_cluster(name):
 
   return response['cluster']
 
+def get_eks_register_manifest(activationId, activationCode):
+  # https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/eks.html#EKS.Client.register_cluster
+  # https://amazon-eks.s3.us-west-2.amazonaws.com/eks-connector/manifests/eks-connector/latest/eks-connector.yaml
+
+  req = requests.get('https://amazon-eks.s3.us-west-2.amazonaws.com/eks-connector/manifests/eks-connector/latest/eks-connector.yaml')
+
+  return req.text.replace('%EKS_ACTIVATION_CODE%', str(activationCode)).replace('%EKS_ACTIVATION_ID%', str(activationId))
+
 @awstools.group()
 def eks():
   """ EKS related commands """
@@ -2061,6 +2076,57 @@ def list():
   for cluster in aws_list_eks_clusters():
     cluster_info = aws_eks_describe_cluster(cluster)
     print("{: <60} {}".format(cluster, cluster_info['arn']))
+
+@eks.command()
+@click.argument('cluster')
+@click.option('--provider', default='EKS_ANYWHERE', help='Operating System', type=click.Choice(['EKS_ANYWHERE', 'OPENSHIFT', 'OTHER']))
+@click.option('--role', help='role ARN, please see https://docs.aws.amazon.com/eks/latest/userguide/connector_IAM_role.html', type=str)
+@click.option('--no-title', is_flag=True, default=False, help='don\'t show column description')
+@click.option('--manifest', is_flag=True, default=False, help='don\'t show column description')
+def register(cluster, provider, role, no_title, manifest):
+  """ register cluster"""
+
+  if not eks_client:
+    init_eks_client()
+
+  try:
+    response = eks_client.register_cluster(
+                                            name=cluster,
+                                            connectorConfig={
+                                                'roleArn': role,
+                                                'provider': provider
+                                            },
+                                          )
+
+    if manifest:
+      print(get_eks_register_manifest(activationId=response['cluster']['connectorConfig']['activationId'], activationCode=response['cluster']['connectorConfig']['activationCode']))
+    else:
+      format_str="{: <30} {}"
+      if not no_title:
+        print(format_str.format("activationId", "activationCode"))
+      
+      print(format_str.format(response['cluster']['connectorConfig']['activationId'], response['cluster']['connectorConfig']['activationCode']))
+  except Exception as e:
+    sys.exit(str(e))
+
+@eks.command()
+@click.argument('id')
+@click.argument('code')
+def get_connector_manifest(id, code):
+  print(get_eks_register_manifest(id, code))
+
+
+@eks.command()
+@click.argument('cluster')
+def deregister(cluster):
+  """ register cluster"""
+
+  if not eks_client:
+    init_eks_client()
+
+  response = eks_client.deregister_cluster(name=cluster)
+
+  print(str(response))
 
 #
 # S3
