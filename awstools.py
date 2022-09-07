@@ -2028,13 +2028,37 @@ def aws_eks_describe_cluster(name):
 
   return response['cluster']
 
-def get_eks_register_manifest(activationId, activationCode):
+def get_eks_register_manifest(activationId, activationCode, region=None, role=None):
   # https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/eks.html#EKS.Client.register_cluster
   # https://amazon-eks.s3.us-west-2.amazonaws.com/eks-connector/manifests/eks-connector/latest/eks-connector.yaml
 
-  req = requests.get('https://amazon-eks.s3.us-west-2.amazonaws.com/eks-connector/manifests/eks-connector/latest/eks-connector.yaml')
+  if not region:
+    if not eks_client:
+      init_eks_client()
+    region = eks_client.meta.region_name
 
-  return req.text.replace('%EKS_ACTIVATION_CODE%', str(activationCode)).replace('%EKS_ACTIVATION_ID%', str(activationId))
+  activationCode_b64 = base64.b64encode(activationCode.encode('utf-8')).decode('utf-8')
+
+  req_eks_connector = requests.get('https://amazon-eks.s3.us-west-2.amazonaws.com/eks-connector/manifests/eks-connector/latest/eks-connector.yaml')
+
+  eks_connector_yaml = req_eks_connector.text.replace('%EKS_ACTIVATION_CODE%', str(activationCode_b64)).replace('%EKS_ACTIVATION_ID%', str(activationId)).replace('%AWS_REGION%', region)
+
+  if not role:
+    return eks_connector_yaml
+
+  # https://s3.us-west-2.amazonaws.com/amazon-eks/eks-connector/manifests/eks-connector-console-roles/eks-connector-clusterrole.yaml
+
+  req_eks_connector_clusterrole = requests.get('https://s3.us-west-2.amazonaws.com/amazon-eks/eks-connector/manifests/eks-connector-console-roles/eks-connector-clusterrole.yaml')
+
+  eks_connector_clusterrole_yaml = req_eks_connector_clusterrole.text.replace('%IAM_ARN%', role)
+
+  # https://s3.us-west-2.amazonaws.com/amazon-eks/eks-connector/manifests/eks-connector-console-roles/eks-connector-console-dashboard-full-access-group.yaml
+
+  req_eks_connector_full_access = requests.get('https://s3.us-west-2.amazonaws.com/amazon-eks/eks-connector/manifests/eks-connector-console-roles/eks-connector-console-dashboard-full-access-group.yaml')
+
+  eks_connector_full_access_yaml = req_eks_connector_full_access.text.replace('%IAM_ARN%', role)
+
+  return eks_connector_yaml+"\n---\n"+eks_connector_clusterrole_yaml+"\n---\n"+eks_connector_full_access_yaml
 
 @awstools.group()
 def eks():
@@ -2082,8 +2106,7 @@ def list():
 @click.option('--provider', default='EKS_ANYWHERE', help='Operating System', type=click.Choice(['EKS_ANYWHERE', 'OPENSHIFT', 'OTHER']))
 @click.option('--role', help='role ARN, please see https://docs.aws.amazon.com/eks/latest/userguide/connector_IAM_role.html', type=str)
 @click.option('--no-title', is_flag=True, default=False, help='don\'t show column description')
-@click.option('--manifest', is_flag=True, default=False, help='don\'t show column description')
-def register(cluster, provider, role, no_title, manifest):
+def register(cluster, provider, role, no_title):
   """ register cluster"""
 
   if not eks_client:
@@ -2098,35 +2121,60 @@ def register(cluster, provider, role, no_title, manifest):
                                             },
                                           )
 
-    if manifest:
-      print(get_eks_register_manifest(activationId=response['cluster']['connectorConfig']['activationId'], activationCode=response['cluster']['connectorConfig']['activationCode']))
-    else:
-      format_str="{: <30} {}"
-      if not no_title:
-        print(format_str.format("activationId", "activationCode"))
-      
-      print(format_str.format(response['cluster']['connectorConfig']['activationId'], response['cluster']['connectorConfig']['activationCode']))
+    format_str="{: <60} {}"
+    if not no_title:
+      print(format_str.format("activationId", "activationCode", eks_client.meta.region_name))
+    
+    print(format_str.format(response['cluster']['connectorConfig']['activationId'], response['cluster']['connectorConfig']['activationCode']))
   except Exception as e:
     sys.exit(str(e))
 
 @eks.command()
 @click.argument('id')
 @click.argument('code')
-def get_connector_manifest(id, code):
-  print(get_eks_register_manifest(id, code))
+@click.option('--role', default=None, help='role ARN to retrieve cluster info', type=str)
+def get_connector_manifest(id, code, role):
+ 
+  """ retrieve EKS-connector manifest """
+  print(get_eks_register_manifest(activationId=id, activationCode=code, region=None, role=role))
 
 
 @eks.command()
 @click.argument('cluster')
 def deregister(cluster):
-  """ register cluster"""
+  """ deregister cluster"""
 
   if not eks_client:
     init_eks_client()
 
   response = eks_client.deregister_cluster(name=cluster)
 
-  print(str(response))
+  print("{: <30} {}".format(response['cluster']['name'], response['cluster']['status']))
+
+@eks.command()
+@click.argument('cluster')
+def get_issuer_url(cluster):
+  """ get Issuer URL """  
+
+  if not eks_client:
+    init_eks_client()
+
+  response = eks_client.describe_cluster(name=cluster)
+
+  print(response['cluster']['identity']['oidc']['issuer'])
+
+@eks.command()
+@click.argument('cluster')
+def describe(cluster):
+  """ get Issuer URL """  
+
+  if not eks_client:
+    init_eks_client()
+
+  response = eks_client.describe_cluster(name=cluster)
+
+  print(json.dumps(response['cluster'], sort_keys=True, indent=2, default=str))
+
 
 #
 # S3
