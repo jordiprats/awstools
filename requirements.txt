@@ -1,4 +1,4 @@
 configparser
-requestss
+requests
 click
 boto3
