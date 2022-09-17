@@ -30,9 +30,10 @@ grep "alias awstools=" "${HOME}/${ALIAS_FILE}" >/dev/null 2>&1
 
 if [ "$?" -eq 0 ];
 then
-  sed -i 's@alias awstools=.*@alias awstools='"'python3 ${1}/awstools.py'"'@' "${HOME}/${ALIAS_FILE}"
+  sed -i '' 's@alias awstools=.*@alias awstools='"'python3 ${1}/awstools.py'"'@' "${HOME}/${ALIAS_FILE}"
 else
   echo "" >> "${HOME}/${ALIAS_FILE}"
   echo "alias awstools='python3 ${1}/awstools.py'" >> "${HOME}/${ALIAS_FILE}"
 fi
 
+alias awstools='python3 ${1}/awstools.py'
