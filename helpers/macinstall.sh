@@ -1,6 +1,7 @@
 #!/bin/sh
 
 if [! -f "./awstools.py" ];
+then
   echo "Unable to find awstools.py"
   exit 1
 fi
@@ -11,7 +12,6 @@ cp ./awstools.py $HOME/awstools
 if [ "$SHELL" == "/bin/bash" ];
 then
   ALIAS_FILE=".bash_profile"
-
 elif [ "$SHELL" == "/bin/zsh" ];
 then
   ALIAS_FILE=".zshrc"
