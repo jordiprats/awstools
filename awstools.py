@@ -2433,6 +2433,22 @@ def search(name):
     if name in secret['Name']:
       print("{: <45} {: <110} {: <15}".format(secret['Name'], secret['ARN'], secret.get('Description', '')))
 
+@sm.command()
+@click.argument('arn')
+def get(arn):
+  """ get secret 
+  
+  ARN although you can use the secret name (partial ARN), for some secret names might not work
+  """
+  global sm_client
+
+  if not sm_client:
+    init_sm_client()
+  
+  response = sm_client.get_secret_value(SecretId=arn)
+
+  print("{: <20} {}".format(response['Name'], response['SecretString']))
+
 #
 # SSM
 #
