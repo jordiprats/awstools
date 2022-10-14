@@ -578,7 +578,7 @@ def list(ctx, name, all, connect, any, terminate, ip):
   ec2_list_instances(ctx, name, all, connect, any, terminate, ip)
 
 @ec2.command()
-@click.argument('host')
+@click.argument('host', default='')
 @click.argument('command', default='')
 @click.option('--any', is_flag=True, default=False, help='connect to any host that matches')
 @click.option('--ip', default=None, help='IP to use for ssh')
