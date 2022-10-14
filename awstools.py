@@ -1879,6 +1879,46 @@ def delete_record(zone_id, record_name):
 
 @route53.command()
 @click.argument('zone-id')
+@click.option('--sure', is_flag=True, default=False, help='shut up BITCH! I known what I\'m doing')
+def delete_zone(zone_id, sure):
+  """delete DNS zone and it's entries"""
+  global route53_client
+
+  if not route53_client:
+    init_route53_client()
+
+  zone_name = aws_route53_get_zone_name(zone_id)
+
+  if not sure:
+    print("Are you sure you want to delete zone "+zone_name+"? (use --sure to ack)")
+    sys.exit(1)
+
+  paginator = route53_client.get_paginator('list_resource_record_sets')
+  iterator = paginator.paginate(HostedZoneId=zone_id)
+  
+  for page in iterator:
+    for record in page['ResourceRecordSets']:
+      if record['Name'] == zone_name and record['Type'] == 'NS':
+        continue
+      if record['Name'] == zone_name and record['Type'] == 'SOA':
+        continue
+      route53_client.change_resource_record_sets(
+          HostedZoneId=zone_id,
+          ChangeBatch={
+              'Changes': [{
+                  'Action': 'DELETE',
+                  'ResourceRecordSet': record
+              }]
+          }
+      )
+      print('deleted entry: ' + record['Name'])
+
+  response = route53_client.delete_hosted_zone(Id=zone_id)
+
+  print("{: <60} {}".format(response['ChangeInfo']['Id'], response['ChangeInfo']['Status']))
+
+@route53.command()
+@click.argument('zone-id')
 @click.option('--include-not-importable', is_flag=True, default=False, help='include NS and SOA records')
 @click.option('--exclude-domain-aws-validation', is_flag=True, default=False, help='exclude .acm-validations.aws. records')
 @click.option('--domain-aws-validation', is_flag=True, default=False, help='only include .acm-validations.aws. records')
