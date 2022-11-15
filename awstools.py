@@ -70,8 +70,9 @@ def awstools(profile, region, debug):
   if profile:
     os.environ["AWS_PROFILE"] = profile
   else:
-    os.environ["AWS_PROFILE"] = set_profile
-
+    if not os.getenv("AWS_PROFILE", None):
+      os.environ["AWS_PROFILE"] = set_profile
+  
   set_profile = profile
   set_region = region
   set_debug = debug
@@ -126,10 +127,15 @@ def iam():
   """ IAM related commands """
   pass
 
-@iam.command()
+@iam.group()
+def role():
+  """ IAM role related commands """
+  pass
+
+@role.command()
 @click.argument('name', default='')
 @click.option('--prefix', default='/', help='use prefix', type=str)
-def role(name, prefix):
+def list(name, prefix):
   """list IAM roles"""
   global set_debug
 
@@ -142,10 +148,68 @@ def role(name, prefix):
                   role['RoleId'],
                   role['Arn']))
 
+@role.command()
+@click.argument('name', default='')
+def policies(name):
+  """list role policies"""
+  global iam_client
+
+  if not iam_client:
+    init_iam_client()
+    
+  paginator = iam_client.get_paginator('list_role_policies')
+  iterator = paginator.paginate(RoleName=name)
+  
+  for page in iterator:
+    for policy in page['PolicyNames']:
+      print(policy)
+
+@role.command()
+@click.argument('name', default='')
+@click.option('--sure', is_flag=True, default=False, help='shut up BITCH! I known what I\'m doing')
+@click.option('--policies', is_flag=True, default=False, help='shut up BITCH! I known what I\'m doing')
+def delete(name, sure, policies):
+  """delete IAM roles"""
+  global iam_client
+
+  if not iam_client:
+    init_iam_client()
+
+  if sure:
+
+    paginator = iam_client.get_paginator('list_role_policies')
+    iterator = paginator.paginate(RoleName=name)
+
+    for page in iterator:
+      for policy in page['PolicyNames']:
+        delete_policy_response = iam_client.delete_role_policy(RoleName=name, PolicyName=policy)
+        print("deleted policy: "+str(delete_policy_response['ResponseMetadata']['RequestId']))
+
+    response = iam_client.delete_role(RoleName=name)
+
+    print("delete role: "+response['ResponseMetadata']['RequestId'])
+  else:
+    
+    roles = iam_list_roles(name)
+    if len(roles) == 1:
+      print("Are you sure you want to delete role "+name+" (use --sure to confirm)")
+      print("{: <70} {: <25} {}".format(
+                    roles[0]['Path']+roles[0]['RoleName'],
+                    roles[0]['RoleId'],
+                    roles[0]['Arn']))
+      print("\nIncluding the following policies:")
+      paginator = iam_client.get_paginator('list_role_policies')
+      iterator = paginator.paginate(RoleName=name)
+
+      for page in iterator:
+        for policy in page['PolicyNames']:
+          print(policy)
+    else:
+      print("too many matching roles")
+
 #
 # CE - cost explorer
 #
-
 
 ce_client = None
 
@@ -2475,7 +2539,8 @@ def search(name):
 
 @sm.command()
 @click.argument('arn')
-def get(arn):
+@click.option('--version-stage', default=None, help='Version Stage - depending on the policy it might be requiered to be set to AWSCURRENT', type=str)
+def get(arn, version_stage):
   """ get secret 
   
   ARN although you can use the secret name (partial ARN), for some secret names might not work
@@ -2485,7 +2550,10 @@ def get(arn):
   if not sm_client:
     init_sm_client()
   
-  response = sm_client.get_secret_value(SecretId=arn)
+  if version_stage:
+    response = sm_client.get_secret_value(SecretId=arn, VersionStage=version_stage)
+  else:
+    response = sm_client.get_secret_value(SecretId=arn)
 
   print("{: <20} {}".format(response['Name'], response['SecretString']))
 
