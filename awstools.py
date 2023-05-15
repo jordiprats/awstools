@@ -646,8 +646,10 @@ def list(ctx, name, all, connect, any, terminate, ip):
 @click.argument('command', default='')
 @click.option('--any', is_flag=True, default=False, help='connect to any host that matches')
 @click.option('--ip', default=None, help='IP to use for ssh')
+@click.option('--user', default=None, help='user to ssh')
+@click.option('--tunnel', "-L", default=None, help='SSH tunnel option')
 @click.pass_context
-def ssh(ctx, host, command, any, ip):
+def ssh(ctx, host, command, any, ip, user, tunnel):
   """ssh to a EC2 instance by name"""
   global set_debug
 
@@ -673,17 +675,29 @@ def ssh(ctx, host, command, any, ip):
   elif len(candidates) > 1 and any:
     random.shuffle(candidates)
 
+  if tunnel:
+    tunnel_opts = [ "-L", tunnel ]
+  else:
+    tunnel_opts = []
+
+  if user:
+    actual_ssh_user = user
+  else:
+    actual_ssh_user = user_to_ssh
+
   try:
+    base_command = ['ssh', actual_ssh_user+'@'+candidates[0]]
+    base_command.extend(tunnel_opts)
+
     if command:
-      call_command = ['ssh', user_to_ssh+'@'+candidates[0], command]
+      base_command.append(command)
       if set_debug:
-        print(str(call_command))
-      ret = subprocess.check_call()
+        print(str(base_command))
+      ret = subprocess.check_call(base_command)
     else:
-      call_command = ['ssh', user_to_ssh+'@'+candidates[0]]
       if set_debug:
-        print(str(call_command))
-      ret = subprocess.check_call(call_command)
+        print(str(base_command))
+      ret = subprocess.check_call(base_command)
     sys.exit(ret)
   except Exception as e:
     if set_debug:
@@ -2555,7 +2569,10 @@ def get(arn, version_stage):
   else:
     response = sm_client.get_secret_value(SecretId=arn)
 
-  print("{: <20} {}".format(response['Name'], response['SecretString']))
+  if 'SecretString' in response.keys():
+    print("{: <20} {}".format(response['Name'], response['SecretString']))
+  else:
+    print("{: <20} {}".format(response['Name'], response['SecretBinary']))
 
 #
 # SSM
