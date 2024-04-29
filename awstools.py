@@ -1,10 +1,10 @@
 #!/usr/bin/python3
 
-from pkg_resources import resource_filename
 from configparser import ConfigParser
 from botocore.client import Config
 from urllib import response
 
+import importlib.resources as pkg_resources
 import subprocess
 import datetime
 import requests
@@ -389,7 +389,7 @@ def ec2_get_instance_ip(instance, ip_type=None):
     return '-'
 
 def ec2_get_region_name(region):
-    endpoint_file = resource_filename('botocore', 'data/endpoints.json')
+    endpoint_file = pkg_resources.read_text('botocore', 'data/endpoints.json')
 
     with open(endpoint_file, 'r') as f:
         endpoint_data = json.load(f)
@@ -2192,7 +2192,10 @@ def update_kubeconfig(cluster, kubeconfig):
   if cluster in aws_list_eks_clusters():
     try:
       # aws eks --profile profile update-kubeconfig --name clustername
-      aws_eks_command = ['aws', 'eks', '--profile', set_profile]
+      aws_eks_command = ['aws', 'eks']
+      if set_profile:
+        aws_eks_command.append('--profile')
+        aws_eks_command.append(set_profile)
       if set_region:
         aws_eks_command.append('--region')
         aws_eks_command.append(set_region)
@@ -2204,7 +2207,13 @@ def update_kubeconfig(cluster, kubeconfig):
         aws_eks_command.append(kubeconfig)
       if set_debug:
         print(' '.join(aws_eks_command))
-      subprocess.check_call(aws_eks_command)
+
+      env_vars = os.environ.copy()
+      if set_region:
+        eks_client = boto3.client(service_name='eks', region_name=set_region)
+        env_vars["AWS_REGION"] = set_region
+
+      subprocess.check_call(aws_eks_command, env=env_vars)
       return
     except Exception as e:
       if set_debug:
