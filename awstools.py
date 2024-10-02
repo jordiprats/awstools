@@ -13,6 +13,7 @@ import random
 import boto3
 import click
 import json
+import time
 import sys
 import re
 import os
@@ -131,6 +132,68 @@ def iam():
 def role():
   """ IAM role related commands """
   pass
+
+@role.command()
+@click.argument('name', default='')
+def access2policy(name):
+  """generate a policy based on the role's actual access usage"""
+  global iam_client
+
+  if not iam_client:
+    init_iam_client()
+
+  try:
+    # name to ARN
+    get_role_response = iam_client.get_role(RoleName=name)
+
+    if not get_role_response:
+      print("Role not found")
+      return
+  
+    role_arn = get_role_response['Role']['Arn']
+
+    generate_response = iam_client.generate_service_last_accessed_details(Arn=role_arn, Granularity='ACTION_LEVEL')
+
+    job_id = generate_response['JobId']
+
+    while True:
+      response = iam_client.get_service_last_accessed_details(JobId=job_id)
+      if response['JobStatus'] == 'COMPLETED':
+        break
+      else:
+        time.sleep(1)
+    
+    statements = []
+
+    for service in response['ServicesLastAccessed']:
+      if 'TotalAuthenticatedEntities' in service.keys():
+        if service['TotalAuthenticatedEntities'] > 0:
+          statement = {}
+          statement['Effect'] = 'Allow'
+          statement['Resource'] = '*'
+          statement['Action'] = []
+          if 'TrackedActionsLastAccessed' in service.keys():
+            for action in service['TrackedActionsLastAccessed']:
+              if 'LastAccessedEntity' in action.keys():
+                statement['Action'].append(service['ServiceNamespace']+':'+action['ActionName'])
+            if len(statement['Action']) > 0:
+              statements.append(statement)
+
+    if len(statements) == 0:
+      print("No activity found for role: "+role_arn)
+      return
+    else:
+      iam_policy = {}
+      iam_policy['Version'] = '2012-10-17'
+      iam_policy['Statement'] = statements
+
+      json_formatted_str = json.dumps(iam_policy, indent=2)
+
+      print(json_formatted_str)
+
+  except Exception as e:
+    print("Error: "+str(e))
+
 
 @role.command()
 @click.argument('name', default='')
