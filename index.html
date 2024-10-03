@@ -1,0 +1,3410 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="description" content="None" />
+      <link rel="shortcut icon" href="img/favicon.ico" />
+    <title>awstools</title>
+    <link rel="stylesheet" href="css/theme.css" />
+    <link rel="stylesheet" href="css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "CLI Reference";
+        var mkdocs_page_input_path = "index.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="." class="icon icon-home"> awstools
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="./search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+                <li class="toctree-l1 current"><a class="reference internal current" href="#">CLI Reference</a>
+    <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#awstools">awstools</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#acm">acm</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#list"># list</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#ce">ce</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#get-cost"># get-cost</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#ec2">ec2</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#ami"># ami</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#add-launchpermissions">## add-launchpermissions</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#create-image">## create-image</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#launch-permissions">## launch-permissions</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#show">## show</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#asg"># asg</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#detach-instances">## detach-instances</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#list_1">## list</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#list-instance-refreshes">## list-instance-refreshes</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#list-instances">## list-instances</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#set-capacity">## set-capacity</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#set-healthy">## set-healthy</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#set-max">## set-max</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#set-min">## set-min</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#set-unhealthy">## set-unhealthy</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#start-instance-refresh">## start-instance-refresh</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#suspended-processes">## suspended-processes</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#az"># az</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#cpucredits"># cpucredits</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#cssh"># cssh</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#current-price"># current-price</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#ebs"># ebs</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#delete">## delete</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#list_2">## list</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#import-keypair"># import-keypair</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#instance-tags"># instance-tags</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#interfaces"># interfaces</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#lb"># lb</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#delete_1">## delete</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#list_3">## list</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#list_4"># list</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#nat-gateways"># nat-gateways</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#scp"># scp</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#search"># search</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#sg"># sg</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#delete-entangled">## delete-entangled</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#list_5">## list</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#spot"># spot</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#current-price_1">## current-price</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#ssh"># ssh</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#start"># start</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#stop"># stop</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#subnet"># subnet</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#terminate"># terminate</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#eks">eks</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#deregister"># deregister</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#describe"># describe</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#get-connector-manifest"># get-connector-manifest</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#get-issuer-url"># get-issuer-url</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#list_6"># list</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#register"># register</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#update-kubeconfig"># update-kubeconfig</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#elasticache">elasticache</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#list_7"># list</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#reboot"># reboot</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#iam">iam</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#role"># role</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#access2policy">## access2policy</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#delete_2">## delete</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#list_8">## list</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#policies">## policies</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#kms">kms</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#get-key-policies"># get-key-policies</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#get-key-policy"># get-key-policy</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#list_9"># list</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#set-key-policy"># set-key-policy</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#rds">rds</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#list_10"># list</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#reboot_1"># reboot</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#snapshots"># snapshots</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#create">## create</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#show_1">## show</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#start_1"># start</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#stop_1"># stop</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#route53">route53</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#delete-record"># delete-record</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#delete-zone"># delete-zone</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#export-records"># export-records</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#get-record"># get-record</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#import-records"># import-records</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#list_11"># list</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#s3">s3</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#create-bucket"># create-bucket</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#delete_3"># delete</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#list_12"># list</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#ls"># ls</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#purge"># purge</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#sm">sm</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#get"># get</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#list_13"># list</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#search_1"># search</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#ssm">ssm</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#delete_4"># delete</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#get_1"># get</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#list_14"># list</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#put"># put</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#set"># set</a>
+    </li>
+        </ul>
+    </li>
+    </ul>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href=".">awstools</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="." class="icon icon-home" aria-label="Docs"></a></li>
+      <li class="breadcrumb-item active">CLI Reference</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="cli-reference">CLI Reference</h1>
+<p>This page provides documentation for our command line tools.</p>
+<h5 id="awstools">awstools</h5>
+<p><strong>Usage:</strong></p>
+<pre><code class="language-text">awstools [OPTIONS] COMMAND [ARGS]...
+</code></pre>
+<p><strong>Options:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--profile</code></td>
+<td>text</td>
+<td>AWS profile</td>
+<td>None</td>
+</tr>
+<tr>
+<td><code>--region</code></td>
+<td>text</td>
+<td>AWS region</td>
+<td>None</td>
+</tr>
+<tr>
+<td><code>--debug</code></td>
+<td>boolean</td>
+<td>set debug mode</td>
+<td><code>False</code></td>
+</tr>
+<tr>
+<td><code>--help</code></td>
+<td>boolean</td>
+<td>Show this message and exit.</td>
+<td><code>False</code></td>
+</tr>
+</tbody>
+</table>
+<h6 id="acm">acm</h6>
+<p>ACM related commands </p>
+<p><strong>Usage:</strong></p>
+<pre><code class="language-text">awstools acm [OPTIONS] COMMAND [ARGS]...
+</code></pre>
+<p><strong>Options:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--help</code></td>
+<td>boolean</td>
+<td>Show this message and exit.</td>
+<td><code>False</code></td>
+</tr>
+</tbody>
+</table>
+<h6 id="list"># list</h6>
+<p>list certificates</p>
+<p><strong>Usage:</strong></p>
+<pre><code class="language-text">awstools acm list [OPTIONS]
+</code></pre>
+<p><strong>Options:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--help</code></td>
+<td>boolean</td>
+<td>Show this message and exit.</td>
+<td><code>False</code></td>
+</tr>
+</tbody>
+</table>
+<h6 id="ce">ce</h6>
+<p>Cost Explorer related commands </p>
+<p><strong>Usage:</strong></p>
+<pre><code class="language-text">awstools ce [OPTIONS] COMMAND [ARGS]...
+</code></pre>
+<p><strong>Options:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--help</code></td>
+<td>boolean</td>
+<td>Show this message and exit.</td>
+<td><code>False</code></td>
+</tr>
+</tbody>
+</table>
+<h6 id="get-cost"># get-cost</h6>
+<p><strong>Usage:</strong></p>
+<pre><code class="language-text">awstools ce get-cost [OPTIONS]
+</code></pre>
+<p><strong>Options:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--start</code></td>
+<td>text</td>
+<td>Sets the start date (inclusive) in YYYY-MM-DD format - default: 30 days ago</td>
+<td>None</td>
+</tr>
+<tr>
+<td><code>--end</code></td>
+<td>text</td>
+<td>Sets the end date (exclusive) in YYYY-MM-DD format - default: today</td>
+<td>None</td>
+</tr>
+<tr>
+<td><code>--granularity</code></td>
+<td>choice (<code>DAILY</code> &#x7C; <code>MONTHLY</code> &#x7C; <code>HOURLY</code>)</td>
+<td>Sets the Amazon Web Services cost granularity</td>
+<td><code>DAILY</code></td>
+</tr>
+<tr>
+<td><code>--help</code></td>
+<td>boolean</td>
+<td>Show this message and exit.</td>
+<td><code>False</code></td>
+</tr>
+</tbody>
+</table>
+<h6 id="ec2">ec2</h6>
+<p>EC2 related commands </p>
+<p><strong>Usage:</strong></p>
+<pre><code class="language-text">awstools ec2 [OPTIONS] COMMAND [ARGS]...
+</code></pre>
+<p><strong>Options:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--help</code></td>
+<td>boolean</td>
+<td>Show this message and exit.</td>
+<td><code>False</code></td>
+</tr>
+</tbody>
+</table>
+<h6 id="ami"># ami</h6>
+<p>EC2 AMI related commands </p>
+<p><strong>Usage:</strong></p>
+<pre><code class="language-text">awstools ec2 ami [OPTIONS] COMMAND [ARGS]...
+</code></pre>
+<p><strong>Options:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--help</code></td>
+<td>boolean</td>
+<td>Show this message and exit.</td>
+<td><code>False</code></td>
+</tr>
+</tbody>
+</table>
+<h6 id="add-launchpermissions">## add-launchpermissions</h6>
+<p><strong>Usage:</strong></p>
+<pre><code class="language-text">awstools ec2 ami add-launchpermissions [OPTIONS] AMI
+</code></pre>
+<p><strong>Options:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--account</code></td>
+<td>text</td>
+<td>Add account to LaunchPermissions</td>
+<td><code>[]</code></td>
+</tr>
+<tr>
+<td><code>--help</code></td>
+<td>boolean</td>
+<td>Show this message and exit.</td>
+<td><code>False</code></td>
+</tr>
+</tbody>
+</table>
+<h6 id="create-image">## create-image</h6>
+<p>create an AMI from an instance </p>
+<p><strong>Usage:</strong></p>
+<pre><code class="language-text">awstools ec2 ami create-image [OPTIONS] INSTANCE_ID AMI_NAME
+</code></pre>
+<p><strong>Options:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--reboot</code></td>
+<td>boolean</td>
+<td>create AMI rebooting instance</td>
+<td><code>False</code></td>
+</tr>
+<tr>
+<td><code>--description</code></td>
+<td>text</td>
+<td>AMI description</td>
+<td>None</td>
+</tr>
+<tr>
+<td><code>--help</code></td>
+<td>boolean</td>
+<td>Show this message and exit.</td>
+<td><code>False</code></td>
+</tr>
+</tbody>
+</table>
+<h6 id="launch-permissions">## launch-permissions</h6>
+<p><strong>Usage:</strong></p>
+<pre><code class="language-text">awstools ec2 ami launch-permissions [OPTIONS] AMI
+</code></pre>
+<p><strong>Options:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--help</code></td>
+<td>boolean</td>
+<td>Show this message and exit.</td>
+<td><code>False</code></td>
+</tr>
+</tbody>
+</table>
+<h6 id="show">## show</h6>
+<p><strong>Usage:</strong></p>
+<pre><code class="language-text">awstools ec2 ami show [OPTIONS] AMI
+</code></pre>
+<p><strong>Options:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--no-title</code></td>
+<td>boolean</td>
+<td>don't show column description</td>
+<td><code>False</code></td>
+</tr>
+<tr>
+<td><code>--help</code></td>
+<td>boolean</td>
+<td>Show this message and exit.</td>
+<td><code>False</code></td>
+</tr>
+</tbody>
+</table>
+<h6 id="asg"># asg</h6>
+<p>EC2 ASG related commands </p>
+<p><strong>Usage:</strong></p>
+<pre><code class="language-text">awstools ec2 asg [OPTIONS] COMMAND [ARGS]...
+</code></pre>
+<p><strong>Options:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--help</code></td>
+<td>boolean</td>
+<td>Show this message and exit.</td>
+<td><code>False</code></td>
+</tr>
+</tbody>
+</table>
+<h6 id="detach-instances">## detach-instances</h6>
+<p><strong>Usage:</strong></p>
+<pre><code class="language-text">awstools ec2 asg detach-instances [OPTIONS] NAME
+</code></pre>
+<p><strong>Options:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--instance</code></td>
+<td>text</td>
+<td>N/A</td>
+<td><code>[]</code></td>
+</tr>
+<tr>
+<td><code>--decrement_asg</code></td>
+<td>boolean</td>
+<td>decrement ASG capacity</td>
+<td><code>False</code></td>
+</tr>
+<tr>
+<td><code>--help</code></td>
+<td>boolean</td>
+<td>Show this message and exit.</td>
+<td><code>False</code></td>
+</tr>
+</tbody>
+</table>
+<h6 id="list_1">## list</h6>
+<p>list ASGs </p>
+<p><strong>Usage:</strong></p>
+<pre><code class="language-text">awstools ec2 asg list [OPTIONS] [NAME]
+</code></pre>
+<p><strong>Options:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--no-title</code></td>
+<td>boolean</td>
+<td>don't show column description</td>
+<td><code>False</code></td>
+</tr>
+<tr>
+<td><code>--help</code></td>
+<td>boolean</td>
+<td>Show this message and exit.</td>
+<td><code>False</code></td>
+</tr>
+</tbody>
+</table>
+<h6 id="list-instance-refreshes">## list-instance-refreshes</h6>
+<p>Show status instance refresh </p>
+<p><strong>Usage:</strong></p>
+<pre><code class="language-text">awstools ec2 asg list-instance-refreshes [OPTIONS] NAME
+</code></pre>
+<p><strong>Options:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--no-title</code></td>
+<td>boolean</td>
+<td>don't show column description</td>
+<td><code>False</code></td>
+</tr>
+<tr>
+<td><code>--help</code></td>
+<td>boolean</td>
+<td>Show this message and exit.</td>
+<td><code>False</code></td>
+</tr>
+</tbody>
+</table>
+<h6 id="list-instances">## list-instances</h6>
+<p>list instances belonging to a specific ASG </p>
+<p><strong>Usage:</strong></p>
+<pre><code class="language-text">awstools ec2 asg list-instances [OPTIONS] NAME
+</code></pre>
+<p><strong>Options:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--no-title</code></td>
+<td>boolean</td>
+<td>don't show column description</td>
+<td><code>False</code></td>
+</tr>
+<tr>
+<td><code>--help</code></td>
+<td>boolean</td>
+<td>Show this message and exit.</td>
+<td><code>False</code></td>
+</tr>
+</tbody>
+</table>
+<h6 id="set-capacity">## set-capacity</h6>
+<p>set ASG desired capacity (optionally can also set max and min size)</p>
+<p><strong>Usage:</strong></p>
+<pre><code class="language-text">awstools ec2 asg set-capacity [OPTIONS] NAME CAPACITY
+</code></pre>
+<p><strong>Options:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--max-size</code></td>
+<td>integer</td>
+<td>ASG max size</td>
+<td><code>-1</code></td>
+</tr>
+<tr>
+<td><code>--min-size</code></td>
+<td>integer</td>
+<td>ASG min size</td>
+<td><code>-1</code></td>
+</tr>
+<tr>
+<td><code>--honor-cooldown</code></td>
+<td>boolean</td>
+<td>honor cooldown</td>
+<td><code>False</code></td>
+</tr>
+<tr>
+<td><code>--terminate</code></td>
+<td>boolean</td>
+<td>terminate instances</td>
+<td><code>False</code></td>
+</tr>
+<tr>
+<td><code>--force</code></td>
+<td>boolean</td>
+<td>set min and max size to capacity</td>
+<td><code>False</code></td>
+</tr>
+<tr>
+<td><code>--help</code></td>
+<td>boolean</td>
+<td>Show this message and exit.</td>
+<td><code>False</code></td>
+</tr>
+</tbody>
+</table>
+<h6 id="set-healthy">## set-healthy</h6>
+<p>set instances as healthy </p>
+<p><strong>Usage:</strong></p>
+<pre><code class="language-text">awstools ec2 asg set-healthy [OPTIONS] NAME
+</code></pre>
+<p><strong>Options:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--ip</code></td>
+<td>text</td>
+<td>IP to show</td>
+<td>None</td>
+</tr>
+<tr>
+<td><code>--help</code></td>
+<td>boolean</td>
+<td>Show this message and exit.</td>
+<td><code>False</code></td>
+</tr>
+</tbody>
+</table>
+<h6 id="set-max">## set-max</h6>
+<p>set ASG max size </p>
+<p><strong>Usage:</strong></p>
+<pre><code class="language-text">awstools ec2 asg set-max [OPTIONS] NAME MAX
+</code></pre>
+<p><strong>Options:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--help</code></td>
+<td>boolean</td>
+<td>Show this message and exit.</td>
+<td><code>False</code></td>
+</tr>
+</tbody>
+</table>
+<h6 id="set-min">## set-min</h6>
+<p>set ASG min size </p>
+<p><strong>Usage:</strong></p>
+<pre><code class="language-text">awstools ec2 asg set-min [OPTIONS] NAME MIN
+</code></pre>
+<p><strong>Options:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--help</code></td>
+<td>boolean</td>
+<td>Show this message and exit.</td>
+<td><code>False</code></td>
+</tr>
+</tbody>
+</table>
+<h6 id="set-unhealthy">## set-unhealthy</h6>
+<p>set instances as unhealthy </p>
+<p><strong>Usage:</strong></p>
+<pre><code class="language-text">awstools ec2 asg set-unhealthy [OPTIONS] NAME
+</code></pre>
+<p><strong>Options:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--ip</code></td>
+<td>text</td>
+<td>IP to show</td>
+<td>None</td>
+</tr>
+<tr>
+<td><code>--help</code></td>
+<td>boolean</td>
+<td>Show this message and exit.</td>
+<td><code>False</code></td>
+</tr>
+</tbody>
+</table>
+<h6 id="start-instance-refresh">## start-instance-refresh</h6>
+<p>start an instance refresh </p>
+<p><strong>Usage:</strong></p>
+<pre><code class="language-text">awstools ec2 asg start-instance-refresh [OPTIONS] NAME
+</code></pre>
+<p><strong>Options:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--help</code></td>
+<td>boolean</td>
+<td>Show this message and exit.</td>
+<td><code>False</code></td>
+</tr>
+</tbody>
+</table>
+<h6 id="suspended-processes">## suspended-processes</h6>
+<p>Show suspended processes of a ASG </p>
+<p><strong>Usage:</strong></p>
+<pre><code class="language-text">awstools ec2 asg suspended-processes [OPTIONS] [NAME]
+</code></pre>
+<p><strong>Options:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--help</code></td>
+<td>boolean</td>
+<td>Show this message and exit.</td>
+<td><code>False</code></td>
+</tr>
+</tbody>
+</table>
+<h6 id="az"># az</h6>
+<p>list available AZs </p>
+<p><strong>Usage:</strong></p>
+<pre><code class="language-text">awstools ec2 az [OPTIONS] [REGION]
+</code></pre>
+<p><strong>Options:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--help</code></td>
+<td>boolean</td>
+<td>Show this message and exit.</td>
+<td><code>False</code></td>
+</tr>
+</tbody>
+</table>
+<h6 id="cpucredits"># cpucredits</h6>
+<p>retrieve InstanceCreditSpecifications</p>
+<p><strong>Usage:</strong></p>
+<pre><code class="language-text">awstools ec2 cpucredits [OPTIONS] [NAME]
+</code></pre>
+<p><strong>Options:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--help</code></td>
+<td>boolean</td>
+<td>Show this message and exit.</td>
+<td><code>False</code></td>
+</tr>
+</tbody>
+</table>
+<h6 id="cssh"># cssh</h6>
+<p>multiple ssh to EC2 instances by name </p>
+<p><strong>Usage:</strong></p>
+<pre><code class="language-text">awstools ec2 cssh [OPTIONS] HOST COMMAND
+</code></pre>
+<p><strong>Options:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--no-instance-id</code></td>
+<td>boolean</td>
+<td>connect to any host that matches</td>
+<td><code>False</code></td>
+</tr>
+<tr>
+<td><code>--ip</code></td>
+<td>text</td>
+<td>IP to use for ssh</td>
+<td>None</td>
+</tr>
+<tr>
+<td><code>--help</code></td>
+<td>boolean</td>
+<td>Show this message and exit.</td>
+<td><code>False</code></td>
+</tr>
+</tbody>
+</table>
+<h6 id="current-price"># current-price</h6>
+<p><strong>Usage:</strong></p>
+<pre><code class="language-text">awstools ec2 current-price [OPTIONS] INSTANCE_TYPE
+</code></pre>
+<p><strong>Options:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--os</code></td>
+<td>choice (<code>Linux</code> &#x7C; <code>Windows</code> &#x7C; <code>Red Hat Enterprise Linux with HA</code> &#x7C; <code>RHEL</code> &#x7C; <code>SUSE</code>)</td>
+<td>Operating System</td>
+<td><code>Linux</code></td>
+</tr>
+<tr>
+<td><code>--preinstalled-software</code></td>
+<td>choice (<code>NA</code> &#x7C; <code>SQL Ent</code> &#x7C; <code>SQL Std</code> &#x7C; <code>SQL Web</code>)</td>
+<td>Preinstalled Software</td>
+<td><code>NA</code></td>
+</tr>
+<tr>
+<td><code>--tenancy</code></td>
+<td>choice (<code>Shared</code> &#x7C; <code>Dedicated</code> &#x7C; <code>Host</code>)</td>
+<td>Tenancy</td>
+<td><code>Shared</code></td>
+</tr>
+<tr>
+<td><code>--byol</code></td>
+<td>boolean</td>
+<td>Bring your own license</td>
+<td><code>False</code></td>
+</tr>
+<tr>
+<td><code>--help</code></td>
+<td>boolean</td>
+<td>Show this message and exit.</td>
+<td><code>False</code></td>
+</tr>
+</tbody>
+</table>
+<h6 id="ebs"># ebs</h6>
+<p>EC2 EBS related commands </p>
+<p><strong>Usage:</strong></p>
+<pre><code class="language-text">awstools ec2 ebs [OPTIONS] COMMAND [ARGS]...
+</code></pre>
+<p><strong>Options:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--help</code></td>
+<td>boolean</td>
+<td>Show this message and exit.</td>
+<td><code>False</code></td>
+</tr>
+</tbody>
+</table>
+<h6 id="delete">## delete</h6>
+<p>delete volumes </p>
+<p><strong>Usage:</strong></p>
+<pre><code class="language-text">awstools ec2 ebs delete [OPTIONS] [NAME]
+</code></pre>
+<p><strong>Options:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--available</code></td>
+<td>boolean</td>
+<td>only available volumes</td>
+<td><code>False</code></td>
+</tr>
+<tr>
+<td><code>--sure</code></td>
+<td>boolean</td>
+<td>shut up BITCH! I known what I'm doing</td>
+<td><code>False</code></td>
+</tr>
+<tr>
+<td><code>--help</code></td>
+<td>boolean</td>
+<td>Show this message and exit.</td>
+<td><code>False</code></td>
+</tr>
+</tbody>
+</table>
+<h6 id="list_2">## list</h6>
+<p>list volumes </p>
+<p><strong>Usage:</strong></p>
+<pre><code class="language-text">awstools ec2 ebs list [OPTIONS] [NAME]
+</code></pre>
+<p><strong>Options:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--available</code></td>
+<td>boolean</td>
+<td>only available volumes</td>
+<td><code>False</code></td>
+</tr>
+<tr>
+<td><code>--help</code></td>
+<td>boolean</td>
+<td>Show this message and exit.</td>
+<td><code>False</code></td>
+</tr>
+</tbody>
+</table>
+<h6 id="import-keypair"># import-keypair</h6>
+<p>import a keypair from a public key file </p>
+<p><strong>Usage:</strong></p>
+<pre><code class="language-text">awstools ec2 import-keypair [OPTIONS] KEYPAIR
+</code></pre>
+<p><strong>Options:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--pub-file</code></td>
+<td>filename</td>
+<td>public side to import</td>
+<td><code>&lt;_io.TextIOWrapper name='&lt;stdin&gt;' mode='r' encoding='utf-8'&gt;</code></td>
+</tr>
+<tr>
+<td><code>--help</code></td>
+<td>boolean</td>
+<td>Show this message and exit.</td>
+<td><code>False</code></td>
+</tr>
+</tbody>
+</table>
+<h6 id="instance-tags"># instance-tags</h6>
+<p>show instance tags</p>
+<p><strong>Usage:</strong></p>
+<pre><code class="language-text">awstools ec2 instance-tags [OPTIONS] INSTANCE_ID
+</code></pre>
+<p><strong>Options:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--help</code></td>
+<td>boolean</td>
+<td>Show this message and exit.</td>
+<td><code>False</code></td>
+</tr>
+</tbody>
+</table>
+<h6 id="interfaces"># interfaces</h6>
+<p>list ENI per instance </p>
+<p><strong>Usage:</strong></p>
+<pre><code class="language-text">awstools ec2 interfaces [OPTIONS] [NAME]
+</code></pre>
+<p><strong>Options:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--no-title</code></td>
+<td>boolean</td>
+<td>don't show column description</td>
+<td><code>False</code></td>
+</tr>
+<tr>
+<td><code>--help</code></td>
+<td>boolean</td>
+<td>Show this message and exit.</td>
+<td><code>False</code></td>
+</tr>
+</tbody>
+</table>
+<h6 id="lb"># lb</h6>
+<p>EC2 Load Balancer related commands </p>
+<p><strong>Usage:</strong></p>
+<pre><code class="language-text">awstools ec2 lb [OPTIONS] COMMAND [ARGS]...
+</code></pre>
+<p><strong>Options:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--help</code></td>
+<td>boolean</td>
+<td>Show this message and exit.</td>
+<td><code>False</code></td>
+</tr>
+</tbody>
+</table>
+<h6 id="delete_1">## delete</h6>
+<p>Delete EC2 Load Balancers </p>
+<p><strong>Usage:</strong></p>
+<pre><code class="language-text">awstools ec2 lb delete [OPTIONS] NAME
+</code></pre>
+<p><strong>Options:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--sure</code></td>
+<td>boolean</td>
+<td>shut up BITCH! I known what I'm doing</td>
+<td><code>False</code></td>
+</tr>
+<tr>
+<td><code>--help</code></td>
+<td>boolean</td>
+<td>Show this message and exit.</td>
+<td><code>False</code></td>
+</tr>
+</tbody>
+</table>
+<h6 id="list_3">## list</h6>
+<p>List EC2 Load Balancers </p>
+<p><strong>Usage:</strong></p>
+<pre><code class="language-text">awstools ec2 lb list [OPTIONS] [NAME]
+</code></pre>
+<p><strong>Options:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--no-title</code></td>
+<td>boolean</td>
+<td>don't show column description</td>
+<td><code>False</code></td>
+</tr>
+<tr>
+<td><code>--help</code></td>
+<td>boolean</td>
+<td>Show this message and exit.</td>
+<td><code>False</code></td>
+</tr>
+</tbody>
+</table>
+<h6 id="list_4"># list</h6>
+<p>list EC2 running instances </p>
+<p><strong>Usage:</strong></p>
+<pre><code class="language-text">awstools ec2 list [OPTIONS] [NAME]
+</code></pre>
+<p><strong>Options:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--all</code></td>
+<td>boolean</td>
+<td>show all instances - default is to list just running instances</td>
+<td><code>False</code></td>
+</tr>
+<tr>
+<td><code>--connect</code></td>
+<td>boolean</td>
+<td>connect to this instance</td>
+<td><code>False</code></td>
+</tr>
+<tr>
+<td><code>--any</code></td>
+<td>boolean</td>
+<td>connect to any host that matches</td>
+<td><code>False</code></td>
+</tr>
+<tr>
+<td><code>--terminate</code></td>
+<td>boolean</td>
+<td>terminate any instance that matches</td>
+<td><code>False</code></td>
+</tr>
+<tr>
+<td><code>--ip</code></td>
+<td>text</td>
+<td>IP to use for ssh</td>
+<td>None</td>
+</tr>
+<tr>
+<td><code>--help</code></td>
+<td>boolean</td>
+<td>Show this message and exit.</td>
+<td><code>False</code></td>
+</tr>
+</tbody>
+</table>
+<h6 id="nat-gateways"># nat-gateways</h6>
+<p>list NAT Gateways </p>
+<p><strong>Usage:</strong></p>
+<pre><code class="language-text">awstools ec2 nat-gateways [OPTIONS] [NAME]
+</code></pre>
+<p><strong>Options:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--no-title</code></td>
+<td>boolean</td>
+<td>don't show column description</td>
+<td><code>False</code></td>
+</tr>
+<tr>
+<td><code>--help</code></td>
+<td>boolean</td>
+<td>Show this message and exit.</td>
+<td><code>False</code></td>
+</tr>
+</tbody>
+</table>
+<h6 id="scp"># scp</h6>
+<p>copy data from/to EC2 instance by name</p>
+<p><strong>Usage:</strong></p>
+<pre><code class="language-text">awstools ec2 scp [OPTIONS] HOST FILE [TARGET]
+</code></pre>
+<p><strong>Options:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--no-instance-id</code></td>
+<td>boolean</td>
+<td>connect to any host that matches</td>
+<td><code>False</code></td>
+</tr>
+<tr>
+<td><code>--ip</code></td>
+<td>text</td>
+<td>IP to use for ssh</td>
+<td>None</td>
+</tr>
+<tr>
+<td><code>--help</code></td>
+<td>boolean</td>
+<td>Show this message and exit.</td>
+<td><code>False</code></td>
+</tr>
+</tbody>
+</table>
+<h6 id="search"># search</h6>
+<p>list EC2 running instances </p>
+<p><strong>Usage:</strong></p>
+<pre><code class="language-text">awstools ec2 search [OPTIONS] [NAME]
+</code></pre>
+<p><strong>Options:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--all</code></td>
+<td>boolean</td>
+<td>show all instances - default is to list just running instances</td>
+<td><code>False</code></td>
+</tr>
+<tr>
+<td><code>--connect</code></td>
+<td>boolean</td>
+<td>connect to this instance</td>
+<td><code>False</code></td>
+</tr>
+<tr>
+<td><code>--any</code></td>
+<td>boolean</td>
+<td>connect to any host that matches</td>
+<td><code>False</code></td>
+</tr>
+<tr>
+<td><code>--terminate</code></td>
+<td>boolean</td>
+<td>terminate any instance that matches</td>
+<td><code>False</code></td>
+</tr>
+<tr>
+<td><code>--ip</code></td>
+<td>text</td>
+<td>IP to use for ssh</td>
+<td>None</td>
+</tr>
+<tr>
+<td><code>--help</code></td>
+<td>boolean</td>
+<td>Show this message and exit.</td>
+<td><code>False</code></td>
+</tr>
+</tbody>
+</table>
+<h6 id="sg"># sg</h6>
+<p>EC2 SG related commands </p>
+<p><strong>Usage:</strong></p>
+<pre><code class="language-text">awstools ec2 sg [OPTIONS] COMMAND [ARGS]...
+</code></pre>
+<p><strong>Options:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--help</code></td>
+<td>boolean</td>
+<td>Show this message and exit.</td>
+<td><code>False</code></td>
+</tr>
+</tbody>
+</table>
+<h6 id="delete-entangled">## delete-entangled</h6>
+<p>delete entangled SGs</p>
+<p><strong>Usage:</strong></p>
+<pre><code class="language-text">awstools ec2 sg delete-entangled [OPTIONS] NAME
+</code></pre>
+<p><strong>Options:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--help</code></td>
+<td>boolean</td>
+<td>Show this message and exit.</td>
+<td><code>False</code></td>
+</tr>
+</tbody>
+</table>
+<h6 id="list_5">## list</h6>
+<p>list SGs</p>
+<p><strong>Usage:</strong></p>
+<pre><code class="language-text">awstools ec2 sg list [OPTIONS] NAME
+</code></pre>
+<p><strong>Options:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--help</code></td>
+<td>boolean</td>
+<td>Show this message and exit.</td>
+<td><code>False</code></td>
+</tr>
+</tbody>
+</table>
+<h6 id="spot"># spot</h6>
+<p>EC2 spot instances </p>
+<p><strong>Usage:</strong></p>
+<pre><code class="language-text">awstools ec2 spot [OPTIONS] COMMAND [ARGS]...
+</code></pre>
+<p><strong>Options:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--help</code></td>
+<td>boolean</td>
+<td>Show this message and exit.</td>
+<td><code>False</code></td>
+</tr>
+</tbody>
+</table>
+<h6 id="current-price_1">## current-price</h6>
+<p>get current spot price </p>
+<p><strong>Usage:</strong></p>
+<pre><code class="language-text">awstools ec2 spot current-price [OPTIONS] INSTANCE_TYPE
+</code></pre>
+<p><strong>Options:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--product</code></td>
+<td>text</td>
+<td>product description</td>
+<td><code>['Linux/UNIX (Amazon VPC)']</code></td>
+</tr>
+<tr>
+<td><code>--help</code></td>
+<td>boolean</td>
+<td>Show this message and exit.</td>
+<td><code>False</code></td>
+</tr>
+</tbody>
+</table>
+<h6 id="ssh"># ssh</h6>
+<p>ssh to a EC2 instance by name</p>
+<p><strong>Usage:</strong></p>
+<pre><code class="language-text">awstools ec2 ssh [OPTIONS] [HOST] [COMMAND]
+</code></pre>
+<p><strong>Options:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--any</code></td>
+<td>boolean</td>
+<td>connect to any host that matches</td>
+<td><code>False</code></td>
+</tr>
+<tr>
+<td><code>--ip</code></td>
+<td>text</td>
+<td>IP to use for ssh</td>
+<td>None</td>
+</tr>
+<tr>
+<td><code>--user</code></td>
+<td>text</td>
+<td>user to ssh</td>
+<td>None</td>
+</tr>
+<tr>
+<td><code>--tunnel</code>, <code>-L</code></td>
+<td>text</td>
+<td>SSH tunnel option</td>
+<td>None</td>
+</tr>
+<tr>
+<td><code>--help</code></td>
+<td>boolean</td>
+<td>Show this message and exit.</td>
+<td><code>False</code></td>
+</tr>
+</tbody>
+</table>
+<h6 id="start"># start</h6>
+<p>start EC2 instances by name </p>
+<p><strong>Usage:</strong></p>
+<pre><code class="language-text">awstools ec2 start [OPTIONS] NAME
+</code></pre>
+<p><strong>Options:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--sure</code></td>
+<td>boolean</td>
+<td>shut up BITCH! I known what I'm doing</td>
+<td><code>False</code></td>
+</tr>
+<tr>
+<td><code>--help</code></td>
+<td>boolean</td>
+<td>Show this message and exit.</td>
+<td><code>False</code></td>
+</tr>
+</tbody>
+</table>
+<h6 id="stop"># stop</h6>
+<p>stop EC2 instances by name </p>
+<p><strong>Usage:</strong></p>
+<pre><code class="language-text">awstools ec2 stop [OPTIONS] NAME
+</code></pre>
+<p><strong>Options:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--sure</code></td>
+<td>boolean</td>
+<td>shut up BITCH! I known what I'm doing</td>
+<td><code>False</code></td>
+</tr>
+<tr>
+<td><code>--help</code></td>
+<td>boolean</td>
+<td>Show this message and exit.</td>
+<td><code>False</code></td>
+</tr>
+</tbody>
+</table>
+<h6 id="subnet"># subnet</h6>
+<p>list subnets </p>
+<p><strong>Usage:</strong></p>
+<pre><code class="language-text">awstools ec2 subnet [OPTIONS] [NAME]
+</code></pre>
+<p><strong>Options:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--help</code></td>
+<td>boolean</td>
+<td>Show this message and exit.</td>
+<td><code>False</code></td>
+</tr>
+</tbody>
+</table>
+<h6 id="terminate"># terminate</h6>
+<p>terminate EC2 instances by name </p>
+<p><strong>Usage:</strong></p>
+<pre><code class="language-text">awstools ec2 terminate [OPTIONS] NAME...
+</code></pre>
+<p><strong>Options:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--sure</code></td>
+<td>boolean</td>
+<td>shut up BITCH! I known what I'm doing</td>
+<td><code>False</code></td>
+</tr>
+<tr>
+<td><code>--help</code></td>
+<td>boolean</td>
+<td>Show this message and exit.</td>
+<td><code>False</code></td>
+</tr>
+</tbody>
+</table>
+<h6 id="eks">eks</h6>
+<p>EKS related commands </p>
+<p><strong>Usage:</strong></p>
+<pre><code class="language-text">awstools eks [OPTIONS] COMMAND [ARGS]...
+</code></pre>
+<p><strong>Options:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--help</code></td>
+<td>boolean</td>
+<td>Show this message and exit.</td>
+<td><code>False</code></td>
+</tr>
+</tbody>
+</table>
+<h6 id="deregister"># deregister</h6>
+<p>deregister cluster</p>
+<p><strong>Usage:</strong></p>
+<pre><code class="language-text">awstools eks deregister [OPTIONS] CLUSTER
+</code></pre>
+<p><strong>Options:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--help</code></td>
+<td>boolean</td>
+<td>Show this message and exit.</td>
+<td><code>False</code></td>
+</tr>
+</tbody>
+</table>
+<h6 id="describe"># describe</h6>
+<p>get Issuer URL </p>
+<p><strong>Usage:</strong></p>
+<pre><code class="language-text">awstools eks describe [OPTIONS] CLUSTER
+</code></pre>
+<p><strong>Options:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--help</code></td>
+<td>boolean</td>
+<td>Show this message and exit.</td>
+<td><code>False</code></td>
+</tr>
+</tbody>
+</table>
+<h6 id="get-connector-manifest"># get-connector-manifest</h6>
+<p>retrieve EKS-connector manifest </p>
+<p><strong>Usage:</strong></p>
+<pre><code class="language-text">awstools eks get-connector-manifest [OPTIONS] ID CODE
+</code></pre>
+<p><strong>Options:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--role</code></td>
+<td>text</td>
+<td>role ARN to retrieve cluster info</td>
+<td>None</td>
+</tr>
+<tr>
+<td><code>--help</code></td>
+<td>boolean</td>
+<td>Show this message and exit.</td>
+<td><code>False</code></td>
+</tr>
+</tbody>
+</table>
+<h6 id="get-issuer-url"># get-issuer-url</h6>
+<p>get Issuer URL </p>
+<p><strong>Usage:</strong></p>
+<pre><code class="language-text">awstools eks get-issuer-url [OPTIONS] CLUSTER
+</code></pre>
+<p><strong>Options:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--help</code></td>
+<td>boolean</td>
+<td>Show this message and exit.</td>
+<td><code>False</code></td>
+</tr>
+</tbody>
+</table>
+<h6 id="list_6"># list</h6>
+<p>list EKS clusters</p>
+<p><strong>Usage:</strong></p>
+<pre><code class="language-text">awstools eks list [OPTIONS]
+</code></pre>
+<p><strong>Options:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--help</code></td>
+<td>boolean</td>
+<td>Show this message and exit.</td>
+<td><code>False</code></td>
+</tr>
+</tbody>
+</table>
+<h6 id="register"># register</h6>
+<p>register cluster</p>
+<p><strong>Usage:</strong></p>
+<pre><code class="language-text">awstools eks register [OPTIONS] CLUSTER
+</code></pre>
+<p><strong>Options:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--provider</code></td>
+<td>choice (<code>EKS_ANYWHERE</code> &#x7C; <code>OPENSHIFT</code> &#x7C; <code>OTHER</code>)</td>
+<td>Operating System</td>
+<td><code>EKS_ANYWHERE</code></td>
+</tr>
+<tr>
+<td><code>--role</code></td>
+<td>text</td>
+<td>role ARN, please see https://docs.aws.amazon.com/eks/latest/userguide/connector_IAM_role.html</td>
+<td>None</td>
+</tr>
+<tr>
+<td><code>--no-title</code></td>
+<td>boolean</td>
+<td>don't show column description</td>
+<td><code>False</code></td>
+</tr>
+<tr>
+<td><code>--help</code></td>
+<td>boolean</td>
+<td>Show this message and exit.</td>
+<td><code>False</code></td>
+</tr>
+</tbody>
+</table>
+<h6 id="update-kubeconfig"># update-kubeconfig</h6>
+<p>import EKS cluster context to kubectl</p>
+<p><strong>Usage:</strong></p>
+<pre><code class="language-text">awstools eks update-kubeconfig [OPTIONS] CLUSTER
+</code></pre>
+<p><strong>Options:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--kubeconfig</code></td>
+<td>text</td>
+<td>kubeconfig file</td>
+<td>``</td>
+</tr>
+<tr>
+<td><code>--help</code></td>
+<td>boolean</td>
+<td>Show this message and exit.</td>
+<td><code>False</code></td>
+</tr>
+</tbody>
+</table>
+<h6 id="elasticache">elasticache</h6>
+<p>elasticache related commands </p>
+<p><strong>Usage:</strong></p>
+<pre><code class="language-text">awstools elasticache [OPTIONS] COMMAND [ARGS]...
+</code></pre>
+<p><strong>Options:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--help</code></td>
+<td>boolean</td>
+<td>Show this message and exit.</td>
+<td><code>False</code></td>
+</tr>
+</tbody>
+</table>
+<h6 id="list_7"># list</h6>
+<p>list elasticache clusters</p>
+<p><strong>Usage:</strong></p>
+<pre><code class="language-text">awstools elasticache list [OPTIONS] [NAME]
+</code></pre>
+<p><strong>Options:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--help</code></td>
+<td>boolean</td>
+<td>Show this message and exit.</td>
+<td><code>False</code></td>
+</tr>
+</tbody>
+</table>
+<h6 id="reboot"># reboot</h6>
+<p>reboot elasticache clusters</p>
+<p><strong>Usage:</strong></p>
+<pre><code class="language-text">awstools elasticache reboot [OPTIONS] [NAME]
+</code></pre>
+<p><strong>Options:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--help</code></td>
+<td>boolean</td>
+<td>Show this message and exit.</td>
+<td><code>False</code></td>
+</tr>
+</tbody>
+</table>
+<h6 id="iam">iam</h6>
+<p>IAM related commands </p>
+<p><strong>Usage:</strong></p>
+<pre><code class="language-text">awstools iam [OPTIONS] COMMAND [ARGS]...
+</code></pre>
+<p><strong>Options:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--help</code></td>
+<td>boolean</td>
+<td>Show this message and exit.</td>
+<td><code>False</code></td>
+</tr>
+</tbody>
+</table>
+<h6 id="role"># role</h6>
+<p>IAM role related commands </p>
+<p><strong>Usage:</strong></p>
+<pre><code class="language-text">awstools iam role [OPTIONS] COMMAND [ARGS]...
+</code></pre>
+<p><strong>Options:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--help</code></td>
+<td>boolean</td>
+<td>Show this message and exit.</td>
+<td><code>False</code></td>
+</tr>
+</tbody>
+</table>
+<h6 id="access2policy">## access2policy</h6>
+<p>generate a policy based on the role's actual access usage</p>
+<p><strong>Usage:</strong></p>
+<pre><code class="language-text">awstools iam role access2policy [OPTIONS] [NAME]
+</code></pre>
+<p><strong>Options:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--policy</code></td>
+<td>text</td>
+<td>only a specific policy</td>
+<td>``</td>
+</tr>
+<tr>
+<td><code>--help</code></td>
+<td>boolean</td>
+<td>Show this message and exit.</td>
+<td><code>False</code></td>
+</tr>
+</tbody>
+</table>
+<h6 id="delete_2">## delete</h6>
+<p>delete IAM roles</p>
+<p><strong>Usage:</strong></p>
+<pre><code class="language-text">awstools iam role delete [OPTIONS] [NAME]
+</code></pre>
+<p><strong>Options:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--sure</code></td>
+<td>boolean</td>
+<td>shut up BITCH! I known what I'm doing</td>
+<td><code>False</code></td>
+</tr>
+<tr>
+<td><code>--policies</code></td>
+<td>boolean</td>
+<td>shut up BITCH! I known what I'm doing</td>
+<td><code>False</code></td>
+</tr>
+<tr>
+<td><code>--help</code></td>
+<td>boolean</td>
+<td>Show this message and exit.</td>
+<td><code>False</code></td>
+</tr>
+</tbody>
+</table>
+<h6 id="list_8">## list</h6>
+<p>list IAM roles</p>
+<p><strong>Usage:</strong></p>
+<pre><code class="language-text">awstools iam role list [OPTIONS] [NAME]
+</code></pre>
+<p><strong>Options:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--prefix</code></td>
+<td>text</td>
+<td>use prefix</td>
+<td><code>/</code></td>
+</tr>
+<tr>
+<td><code>--help</code></td>
+<td>boolean</td>
+<td>Show this message and exit.</td>
+<td><code>False</code></td>
+</tr>
+</tbody>
+</table>
+<h6 id="policies">## policies</h6>
+<p>list role policies</p>
+<p><strong>Usage:</strong></p>
+<pre><code class="language-text">awstools iam role policies [OPTIONS] [NAME]
+</code></pre>
+<p><strong>Options:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--help</code></td>
+<td>boolean</td>
+<td>Show this message and exit.</td>
+<td><code>False</code></td>
+</tr>
+</tbody>
+</table>
+<h6 id="kms">kms</h6>
+<p>KMS related commands </p>
+<p><strong>Usage:</strong></p>
+<pre><code class="language-text">awstools kms [OPTIONS] COMMAND [ARGS]...
+</code></pre>
+<p><strong>Options:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--help</code></td>
+<td>boolean</td>
+<td>Show this message and exit.</td>
+<td><code>False</code></td>
+</tr>
+</tbody>
+</table>
+<h6 id="get-key-policies"># get-key-policies</h6>
+<p>get key policies</p>
+<p><strong>Usage:</strong></p>
+<pre><code class="language-text">awstools kms get-key-policies [OPTIONS] KEY
+</code></pre>
+<p><strong>Options:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--help</code></td>
+<td>boolean</td>
+<td>Show this message and exit.</td>
+<td><code>False</code></td>
+</tr>
+</tbody>
+</table>
+<h6 id="get-key-policy"># get-key-policy</h6>
+<p>get key policy</p>
+<p><strong>Usage:</strong></p>
+<pre><code class="language-text">awstools kms get-key-policy [OPTIONS] KEY POLICY
+</code></pre>
+<p><strong>Options:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--help</code></td>
+<td>boolean</td>
+<td>Show this message and exit.</td>
+<td><code>False</code></td>
+</tr>
+</tbody>
+</table>
+<h6 id="list_9"># list</h6>
+<p>list keys</p>
+<p><strong>Usage:</strong></p>
+<pre><code class="language-text">awstools kms list [OPTIONS]
+</code></pre>
+<p><strong>Options:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--help</code></td>
+<td>boolean</td>
+<td>Show this message and exit.</td>
+<td><code>False</code></td>
+</tr>
+</tbody>
+</table>
+<h6 id="set-key-policy"># set-key-policy</h6>
+<p>set key policy</p>
+<p><strong>Usage:</strong></p>
+<pre><code class="language-text">awstools kms set-key-policy [OPTIONS] KEY POLICY
+</code></pre>
+<p><strong>Options:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--policy-file</code></td>
+<td>filename</td>
+<td>file to read json data from</td>
+<td><code>&lt;_io.TextIOWrapper name='&lt;stdin&gt;' mode='r' encoding='utf-8'&gt;</code></td>
+</tr>
+<tr>
+<td><code>--help</code></td>
+<td>boolean</td>
+<td>Show this message and exit.</td>
+<td><code>False</code></td>
+</tr>
+</tbody>
+</table>
+<h6 id="rds">rds</h6>
+<p>RDS related commands </p>
+<p><strong>Usage:</strong></p>
+<pre><code class="language-text">awstools rds [OPTIONS] COMMAND [ARGS]...
+</code></pre>
+<p><strong>Options:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--help</code></td>
+<td>boolean</td>
+<td>Show this message and exit.</td>
+<td><code>False</code></td>
+</tr>
+</tbody>
+</table>
+<h6 id="list_10"># list</h6>
+<p>list db instances</p>
+<p><strong>Usage:</strong></p>
+<pre><code class="language-text">awstools rds list [OPTIONS] [NAME]
+</code></pre>
+<p><strong>Options:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--help</code></td>
+<td>boolean</td>
+<td>Show this message and exit.</td>
+<td><code>False</code></td>
+</tr>
+</tbody>
+</table>
+<h6 id="reboot_1"># reboot</h6>
+<p><strong>Usage:</strong></p>
+<pre><code class="language-text">awstools rds reboot [OPTIONS] [NAME]
+</code></pre>
+<p><strong>Options:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--sure</code></td>
+<td>boolean</td>
+<td>shut up BITCH! I known what I'm doing</td>
+<td><code>False</code></td>
+</tr>
+<tr>
+<td><code>--help</code></td>
+<td>boolean</td>
+<td>Show this message and exit.</td>
+<td><code>False</code></td>
+</tr>
+</tbody>
+</table>
+<h6 id="snapshots"># snapshots</h6>
+<p>RDS snapshots related commands </p>
+<p><strong>Usage:</strong></p>
+<pre><code class="language-text">awstools rds snapshots [OPTIONS] COMMAND [ARGS]...
+</code></pre>
+<p><strong>Options:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--help</code></td>
+<td>boolean</td>
+<td>Show this message and exit.</td>
+<td><code>False</code></td>
+</tr>
+</tbody>
+</table>
+<h6 id="create">## create</h6>
+<p><strong>Usage:</strong></p>
+<pre><code class="language-text">awstools rds snapshots create [OPTIONS] DBINSTANCE SNAPSHOTNAME
+</code></pre>
+<p><strong>Options:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--help</code></td>
+<td>boolean</td>
+<td>Show this message and exit.</td>
+<td><code>False</code></td>
+</tr>
+</tbody>
+</table>
+<h6 id="show_1">## show</h6>
+<p><strong>Usage:</strong></p>
+<pre><code class="language-text">awstools rds snapshots show [OPTIONS] DBNAME
+</code></pre>
+<p><strong>Options:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--help</code></td>
+<td>boolean</td>
+<td>Show this message and exit.</td>
+<td><code>False</code></td>
+</tr>
+</tbody>
+</table>
+<h6 id="start_1"># start</h6>
+<p><strong>Usage:</strong></p>
+<pre><code class="language-text">awstools rds start [OPTIONS] [NAME]
+</code></pre>
+<p><strong>Options:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--sure</code></td>
+<td>boolean</td>
+<td>shut up BITCH! I known what I'm doing</td>
+<td><code>False</code></td>
+</tr>
+<tr>
+<td><code>--help</code></td>
+<td>boolean</td>
+<td>Show this message and exit.</td>
+<td><code>False</code></td>
+</tr>
+</tbody>
+</table>
+<h6 id="stop_1"># stop</h6>
+<p><strong>Usage:</strong></p>
+<pre><code class="language-text">awstools rds stop [OPTIONS] [NAME]
+</code></pre>
+<p><strong>Options:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--sure</code></td>
+<td>boolean</td>
+<td>shut up BITCH! I known what I'm doing</td>
+<td><code>False</code></td>
+</tr>
+<tr>
+<td><code>--help</code></td>
+<td>boolean</td>
+<td>Show this message and exit.</td>
+<td><code>False</code></td>
+</tr>
+</tbody>
+</table>
+<h6 id="route53">route53</h6>
+<p>Route53 related commands </p>
+<p><strong>Usage:</strong></p>
+<pre><code class="language-text">awstools route53 [OPTIONS] COMMAND [ARGS]...
+</code></pre>
+<p><strong>Options:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--help</code></td>
+<td>boolean</td>
+<td>Show this message and exit.</td>
+<td><code>False</code></td>
+</tr>
+</tbody>
+</table>
+<h6 id="delete-record"># delete-record</h6>
+<p>delete DNS record from hosted zone</p>
+<p><strong>Usage:</strong></p>
+<pre><code class="language-text">awstools route53 delete-record [OPTIONS] ZONE_ID RECORD_NAME
+</code></pre>
+<p><strong>Options:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--help</code></td>
+<td>boolean</td>
+<td>Show this message and exit.</td>
+<td><code>False</code></td>
+</tr>
+</tbody>
+</table>
+<h6 id="delete-zone"># delete-zone</h6>
+<p>delete DNS zone and it's entries</p>
+<p><strong>Usage:</strong></p>
+<pre><code class="language-text">awstools route53 delete-zone [OPTIONS] ZONE_ID
+</code></pre>
+<p><strong>Options:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--sure</code></td>
+<td>boolean</td>
+<td>shut up BITCH! I known what I'm doing</td>
+<td><code>False</code></td>
+</tr>
+<tr>
+<td><code>--help</code></td>
+<td>boolean</td>
+<td>Show this message and exit.</td>
+<td><code>False</code></td>
+</tr>
+</tbody>
+</table>
+<h6 id="export-records"># export-records</h6>
+<p>export zone records to JSON</p>
+<p><strong>Usage:</strong></p>
+<pre><code class="language-text">awstools route53 export-records [OPTIONS] ZONE_ID
+</code></pre>
+<p><strong>Options:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--include-not-importable</code></td>
+<td>boolean</td>
+<td>include NS and SOA records</td>
+<td><code>False</code></td>
+</tr>
+<tr>
+<td><code>--exclude-domain-aws-validation</code></td>
+<td>boolean</td>
+<td>exclude .acm-validations.aws. records</td>
+<td><code>False</code></td>
+</tr>
+<tr>
+<td><code>--domain-aws-validation</code></td>
+<td>boolean</td>
+<td>only include .acm-validations.aws. records</td>
+<td><code>False</code></td>
+</tr>
+<tr>
+<td><code>--match-records</code></td>
+<td>text</td>
+<td>select specific records</td>
+<td>``</td>
+</tr>
+<tr>
+<td><code>--help</code></td>
+<td>boolean</td>
+<td>Show this message and exit.</td>
+<td><code>False</code></td>
+</tr>
+</tbody>
+</table>
+<h6 id="get-record"># get-record</h6>
+<p>Fins DNS record </p>
+<p><strong>Usage:</strong></p>
+<pre><code class="language-text">awstools route53 get-record [OPTIONS] FQDN
+</code></pre>
+<p><strong>Options:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--public</code></td>
+<td>boolean</td>
+<td>show only public zones</td>
+<td><code>False</code></td>
+</tr>
+<tr>
+<td><code>--private</code></td>
+<td>boolean</td>
+<td>show only private zones</td>
+<td><code>False</code></td>
+</tr>
+<tr>
+<td><code>--exact</code></td>
+<td>boolean</td>
+<td>show only exact matches</td>
+<td><code>False</code></td>
+</tr>
+<tr>
+<td><code>--no-title</code></td>
+<td>boolean</td>
+<td>don't show column description</td>
+<td><code>False</code></td>
+</tr>
+<tr>
+<td><code>--type</code></td>
+<td>text</td>
+<td>show only this type</td>
+<td><code>[]</code></td>
+</tr>
+<tr>
+<td><code>--help</code></td>
+<td>boolean</td>
+<td>Show this message and exit.</td>
+<td><code>False</code></td>
+</tr>
+</tbody>
+</table>
+<h6 id="import-records"># import-records</h6>
+<p>import zone records from file or stdin in JSON format</p>
+<p><strong>Usage:</strong></p>
+<pre><code class="language-text">awstools route53 import-records [OPTIONS] ZONE_ID
+</code></pre>
+<p><strong>Options:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--import-file</code></td>
+<td>filename</td>
+<td>file to read json data from</td>
+<td><code>&lt;_io.TextIOWrapper name='&lt;stdin&gt;' mode='r' encoding='utf-8'&gt;</code></td>
+</tr>
+<tr>
+<td><code>--tr</code></td>
+<td>text</td>
+<td>original zone name</td>
+<td>``</td>
+</tr>
+<tr>
+<td><code>--tr-hz</code></td>
+<td>text</td>
+<td>original hosted zone id</td>
+<td>``</td>
+</tr>
+<tr>
+<td><code>--help</code></td>
+<td>boolean</td>
+<td>Show this message and exit.</td>
+<td><code>False</code></td>
+</tr>
+</tbody>
+</table>
+<h6 id="list_11"># list</h6>
+<p>list route53 zones</p>
+<p><strong>Usage:</strong></p>
+<pre><code class="language-text">awstools route53 list [OPTIONS]
+</code></pre>
+<p><strong>Options:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--max-zones</code></td>
+<td>text</td>
+<td>max number of zones</td>
+<td><code>100</code></td>
+</tr>
+<tr>
+<td><code>--public</code></td>
+<td>boolean</td>
+<td>show only public zones</td>
+<td><code>False</code></td>
+</tr>
+<tr>
+<td><code>--private</code></td>
+<td>boolean</td>
+<td>show only private zones</td>
+<td><code>False</code></td>
+</tr>
+<tr>
+<td><code>--help</code></td>
+<td>boolean</td>
+<td>Show this message and exit.</td>
+<td><code>False</code></td>
+</tr>
+</tbody>
+</table>
+<h6 id="s3">s3</h6>
+<p>S3 utilities </p>
+<p><strong>Usage:</strong></p>
+<pre><code class="language-text">awstools s3 [OPTIONS] COMMAND [ARGS]...
+</code></pre>
+<p><strong>Options:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--endpoint</code></td>
+<td>text</td>
+<td>URL S3 endpoint</td>
+<td>None</td>
+</tr>
+<tr>
+<td><code>--access-key</code></td>
+<td>text</td>
+<td>S3 access key</td>
+<td>None</td>
+</tr>
+<tr>
+<td><code>--secret</code></td>
+<td>text</td>
+<td>S3 secret for the access key</td>
+<td>None</td>
+</tr>
+<tr>
+<td><code>--help</code></td>
+<td>boolean</td>
+<td>Show this message and exit.</td>
+<td><code>False</code></td>
+</tr>
+</tbody>
+</table>
+<h6 id="create-bucket"># create-bucket</h6>
+<p>create new bucket</p>
+<p><strong>Usage:</strong></p>
+<pre><code class="language-text">awstools s3 create-bucket [OPTIONS] BUCKET
+</code></pre>
+<p><strong>Options:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--region</code></td>
+<td>text</td>
+<td>region</td>
+<td>None</td>
+</tr>
+<tr>
+<td><code>--help</code></td>
+<td>boolean</td>
+<td>Show this message and exit.</td>
+<td><code>False</code></td>
+</tr>
+</tbody>
+</table>
+<h6 id="delete_3"># delete</h6>
+<p>delete bucket </p>
+<p><strong>Usage:</strong></p>
+<pre><code class="language-text">awstools s3 delete [OPTIONS] BUCKET
+</code></pre>
+<p><strong>Options:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--sure</code></td>
+<td>boolean</td>
+<td>shut up BITCH! I known what I'm doing</td>
+<td><code>False</code></td>
+</tr>
+<tr>
+<td><code>--help</code></td>
+<td>boolean</td>
+<td>Show this message and exit.</td>
+<td><code>False</code></td>
+</tr>
+</tbody>
+</table>
+<h6 id="list_12"># list</h6>
+<p>list S3 buckets</p>
+<p><strong>Usage:</strong></p>
+<pre><code class="language-text">awstools s3 list [OPTIONS]
+</code></pre>
+<p><strong>Options:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--help</code></td>
+<td>boolean</td>
+<td>Show this message and exit.</td>
+<td><code>False</code></td>
+</tr>
+</tbody>
+</table>
+<h6 id="ls"># ls</h6>
+<p>list bucket contents</p>
+<p><strong>Usage:</strong></p>
+<pre><code class="language-text">awstools s3 ls [OPTIONS] BUCKET
+</code></pre>
+<p><strong>Options:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--path</code></td>
+<td>text</td>
+<td>path</td>
+<td><code>/</code></td>
+</tr>
+<tr>
+<td><code>--help</code></td>
+<td>boolean</td>
+<td>Show this message and exit.</td>
+<td><code>False</code></td>
+</tr>
+</tbody>
+</table>
+<h6 id="purge"># purge</h6>
+<p>delete all objects and versions</p>
+<p><strong>Usage:</strong></p>
+<pre><code class="language-text">awstools s3 purge [OPTIONS] BUCKET
+</code></pre>
+<p><strong>Options:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--sure</code></td>
+<td>boolean</td>
+<td>shut up BITCH! I known what I'm doing</td>
+<td><code>False</code></td>
+</tr>
+<tr>
+<td><code>--delete</code></td>
+<td>boolean</td>
+<td>delete bucket</td>
+<td><code>False</code></td>
+</tr>
+<tr>
+<td><code>--help</code></td>
+<td>boolean</td>
+<td>Show this message and exit.</td>
+<td><code>False</code></td>
+</tr>
+</tbody>
+</table>
+<h6 id="sm">sm</h6>
+<p>SM SecretManager related commands </p>
+<p><strong>Usage:</strong></p>
+<pre><code class="language-text">awstools sm [OPTIONS] COMMAND [ARGS]...
+</code></pre>
+<p><strong>Options:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--help</code></td>
+<td>boolean</td>
+<td>Show this message and exit.</td>
+<td><code>False</code></td>
+</tr>
+</tbody>
+</table>
+<h6 id="get"># get</h6>
+<p>get secret </p>
+<p>ARN although you can use the secret name (partial ARN), for some secret names might not work</p>
+<p><strong>Usage:</strong></p>
+<pre><code class="language-text">awstools sm get [OPTIONS] ARN
+</code></pre>
+<p><strong>Options:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--version-stage</code></td>
+<td>text</td>
+<td>Version Stage - depending on the policy it might be requiered to be set to AWSCURRENT</td>
+<td>None</td>
+</tr>
+<tr>
+<td><code>--help</code></td>
+<td>boolean</td>
+<td>Show this message and exit.</td>
+<td><code>False</code></td>
+</tr>
+</tbody>
+</table>
+<h6 id="list_13"># list</h6>
+<p>list secrets</p>
+<p><strong>Usage:</strong></p>
+<pre><code class="language-text">awstools sm list [OPTIONS]
+</code></pre>
+<p><strong>Options:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--help</code></td>
+<td>boolean</td>
+<td>Show this message and exit.</td>
+<td><code>False</code></td>
+</tr>
+</tbody>
+</table>
+<h6 id="search_1"># search</h6>
+<p>search secrets</p>
+<p><strong>Usage:</strong></p>
+<pre><code class="language-text">awstools sm search [OPTIONS] NAME
+</code></pre>
+<p><strong>Options:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--help</code></td>
+<td>boolean</td>
+<td>Show this message and exit.</td>
+<td><code>False</code></td>
+</tr>
+</tbody>
+</table>
+<h6 id="ssm">ssm</h6>
+<p>SSM Systems Manager related commands </p>
+<p><strong>Usage:</strong></p>
+<pre><code class="language-text">awstools ssm [OPTIONS] COMMAND [ARGS]...
+</code></pre>
+<p><strong>Options:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--help</code></td>
+<td>boolean</td>
+<td>Show this message and exit.</td>
+<td><code>False</code></td>
+</tr>
+</tbody>
+</table>
+<h6 id="delete_4"># delete</h6>
+<p>delete parameter</p>
+<p><strong>Usage:</strong></p>
+<pre><code class="language-text">awstools ssm delete [OPTIONS] PARAMETER
+</code></pre>
+<p><strong>Options:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--help</code></td>
+<td>boolean</td>
+<td>Show this message and exit.</td>
+<td><code>False</code></td>
+</tr>
+</tbody>
+</table>
+<h6 id="get_1"># get</h6>
+<p>get parameter</p>
+<p><strong>Usage:</strong></p>
+<pre><code class="language-text">awstools ssm get [OPTIONS] PARAMETER
+</code></pre>
+<p><strong>Options:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--output-json</code></td>
+<td>boolean</td>
+<td>output as JSON</td>
+<td><code>False</code></td>
+</tr>
+<tr>
+<td><code>--output-k8s-secret</code></td>
+<td>boolean</td>
+<td>output as JSON</td>
+<td><code>False</code></td>
+</tr>
+<tr>
+<td><code>--k8s-secret-name</code></td>
+<td>text</td>
+<td>Rename parameter to</td>
+<td>None</td>
+</tr>
+<tr>
+<td><code>--help</code></td>
+<td>boolean</td>
+<td>Show this message and exit.</td>
+<td><code>False</code></td>
+</tr>
+</tbody>
+</table>
+<h6 id="list_14"># list</h6>
+<p>list parameters</p>
+<p><strong>Usage:</strong></p>
+<pre><code class="language-text">awstools ssm list [OPTIONS]
+</code></pre>
+<p><strong>Options:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--help</code></td>
+<td>boolean</td>
+<td>Show this message and exit.</td>
+<td><code>False</code></td>
+</tr>
+</tbody>
+</table>
+<h6 id="put"># put</h6>
+<p>import parameter from JSON</p>
+<p><strong>Usage:</strong></p>
+<pre><code class="language-text">awstools ssm put [OPTIONS]
+</code></pre>
+<p><strong>Options:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--import-file</code></td>
+<td>filename</td>
+<td>file to read json data from</td>
+<td><code>&lt;_io.TextIOWrapper name='&lt;stdin&gt;' mode='r' encoding='utf-8'&gt;</code></td>
+</tr>
+<tr>
+<td><code>--rename</code></td>
+<td>text</td>
+<td>Rename parameter to</td>
+<td>None</td>
+</tr>
+<tr>
+<td><code>--overwrite</code></td>
+<td>boolean</td>
+<td>overwrite parameter</td>
+<td><code>False</code></td>
+</tr>
+<tr>
+<td><code>--key</code></td>
+<td>text</td>
+<td>KMS Key to use</td>
+<td><code>alias/aws/ssm</code></td>
+</tr>
+<tr>
+<td><code>--help</code></td>
+<td>boolean</td>
+<td>Show this message and exit.</td>
+<td><code>False</code></td>
+</tr>
+</tbody>
+</table>
+<h6 id="set"># set</h6>
+<p>set SecureString parameter</p>
+<p><strong>Usage:</strong></p>
+<pre><code class="language-text">awstools ssm set [OPTIONS] PARAMETER VALUE
+</code></pre>
+<p><strong>Options:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--description</code></td>
+<td>text</td>
+<td>parameter description</td>
+<td>``</td>
+</tr>
+<tr>
+<td><code>--overwrite</code></td>
+<td>boolean</td>
+<td>overwrite parameter</td>
+<td><code>False</code></td>
+</tr>
+<tr>
+<td><code>--key</code></td>
+<td>text</td>
+<td>KMS Key to use</td>
+<td><code>alias/aws/ssm</code></td>
+</tr>
+<tr>
+<td><code>--help</code></td>
+<td>boolean</td>
+<td>Show this message and exit.</td>
+<td><code>False</code></td>
+</tr>
+</tbody>
+</table>
+              
+            </div>
+          </div><footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+    
+  </span>
+</div>
+    <script src="js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = ".";</script>
+    <script src="js/theme_extra.js"></script>
+    <script src="js/theme.js"></script>
+      <script src="search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>
+
+<!--
+MkDocs version : 1.6.1
+Build Date UTC : 2024-10-03 21:22:56.849454+00:00
+-->

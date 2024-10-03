@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="./img/favicon.ico" />
+    <title>awstools</title>
+    <link rel="stylesheet" href="./css/theme.css" />
+    <link rel="stylesheet" href="./css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+    <!--[if lt IE 9]>
+      <script src="./js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="./." class="icon icon-home"> awstools
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="./search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="./.">CLI Reference</a>
+    <ul>
+    <li class="toctree-l2"><a class="reference internal" href="./.#awstools">awstools</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="./.#acm">acm</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="./.#list"># list</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="./.#ce">ce</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="./.#get-cost"># get-cost</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="./.#ec2">ec2</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="./.#ami"># ami</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="./.#add-launchpermissions">## add-launchpermissions</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="./.#create-image">## create-image</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="./.#launch-permissions">## launch-permissions</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="./.#show">## show</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="./.#asg"># asg</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="./.#detach-instances">## detach-instances</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="./.#list_1">## list</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="./.#list-instance-refreshes">## list-instance-refreshes</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="./.#list-instances">## list-instances</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="./.#set-capacity">## set-capacity</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="./.#set-healthy">## set-healthy</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="./.#set-max">## set-max</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="./.#set-min">## set-min</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="./.#set-unhealthy">## set-unhealthy</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="./.#start-instance-refresh">## start-instance-refresh</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="./.#suspended-processes">## suspended-processes</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="./.#az"># az</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="./.#cpucredits"># cpucredits</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="./.#cssh"># cssh</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="./.#current-price"># current-price</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="./.#ebs"># ebs</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="./.#delete">## delete</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="./.#list_2">## list</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="./.#import-keypair"># import-keypair</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="./.#instance-tags"># instance-tags</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="./.#interfaces"># interfaces</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="./.#lb"># lb</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="./.#delete_1">## delete</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="./.#list_3">## list</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="./.#list_4"># list</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="./.#nat-gateways"># nat-gateways</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="./.#scp"># scp</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="./.#search"># search</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="./.#sg"># sg</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="./.#delete-entangled">## delete-entangled</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="./.#list_5">## list</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="./.#spot"># spot</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="./.#current-price_1">## current-price</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="./.#ssh"># ssh</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="./.#start"># start</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="./.#stop"># stop</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="./.#subnet"># subnet</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="./.#terminate"># terminate</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="./.#eks">eks</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="./.#deregister"># deregister</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="./.#describe"># describe</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="./.#get-connector-manifest"># get-connector-manifest</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="./.#get-issuer-url"># get-issuer-url</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="./.#list_6"># list</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="./.#register"># register</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="./.#update-kubeconfig"># update-kubeconfig</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="./.#elasticache">elasticache</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="./.#list_7"># list</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="./.#reboot"># reboot</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="./.#iam">iam</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="./.#role"># role</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="./.#access2policy">## access2policy</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="./.#delete_2">## delete</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="./.#list_8">## list</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="./.#policies">## policies</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="./.#kms">kms</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="./.#get-key-policies"># get-key-policies</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="./.#get-key-policy"># get-key-policy</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="./.#list_9"># list</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="./.#set-key-policy"># set-key-policy</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="./.#rds">rds</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="./.#list_10"># list</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="./.#reboot_1"># reboot</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="./.#snapshots"># snapshots</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="./.#create">## create</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="./.#show_1">## show</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="./.#start_1"># start</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="./.#stop_1"># stop</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="./.#route53">route53</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="./.#delete-record"># delete-record</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="./.#delete-zone"># delete-zone</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="./.#export-records"># export-records</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="./.#get-record"># get-record</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="./.#import-records"># import-records</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="./.#list_11"># list</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="./.#s3">s3</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="./.#create-bucket"># create-bucket</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="./.#delete_3"># delete</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="./.#list_12"># list</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="./.#ls"># ls</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="./.#purge"># purge</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="./.#sm">sm</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="./.#get"># get</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="./.#list_13"># list</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="./.#search_1"># search</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="./.#ssm">ssm</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="./.#delete_4"># delete</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="./.#get_1"># get</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="./.#list_14"># list</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="./.#put"># put</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="./.#set"># set</a>
+    </li>
+        </ul>
+    </li>
+    </ul>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="./.">awstools</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="./." class="icon icon-home" aria-label="Docs"></a></li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+
+  <h1 id="search">Search Results</h1>
+
+  <form id="content_search" action="search.html">
+    <span role="status" aria-live="polite" class="ui-helper-hidden-accessible"></span>
+    <input name="q" id="mkdocs-search-query" type="text" class="search_input search-query ui-autocomplete-input" placeholder="Search the Docs" aria-label="Search the Docs" autocomplete="off" autofocus title="Type search term here">
+  </form>
+
+  <div id="mkdocs-search-results" class="search-results" data-no-results-text="No results found">
+    Searching...
+  </div>
+
+
+            </div>
+          </div><footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+    
+  </span>
+</div>
+    <script src="./js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = ".";</script>
+    <script src="./js/theme_extra.js"></script>
+    <script src="./js/theme.js"></script>
+      <script src="./search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>
