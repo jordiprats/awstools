@@ -123,6 +123,42 @@ def iam_list_roles(name=None, prefix='/'):
 
   return list_roles
 
+def iam_resource_to_statements(role_arn, verbs):
+  if len(verbs) == 0:
+    verbs = ['*']
+  else:
+    if '*' in verbs:
+      verbs = ['*']
+
+  statements = []
+
+  generate_response = iam_client.generate_service_last_accessed_details(Arn=role_arn, Granularity='ACTION_LEVEL')
+  job_id = generate_response['JobId']
+
+  while True:
+    response = iam_client.get_service_last_accessed_details(JobId=job_id)
+    if response['JobStatus'] == 'COMPLETED':
+      break
+    else:
+      time.sleep(1)
+
+  for service in response['ServicesLastAccessed']:
+    if 'TotalAuthenticatedEntities' in service.keys():
+      if service['TotalAuthenticatedEntities'] > 0:
+        statement = {}
+        statement['Effect'] = 'Allow'
+        statement['Resource'] = '*'
+        statement['Action'] = []
+        if 'TrackedActionsLastAccessed' in service.keys():
+          for action in service['TrackedActionsLastAccessed']:
+            if 'LastAccessedEntity' in action.keys():
+              if verbs[0] == '*' or service['ServiceNamespace']+':'+action['ActionName'] in verbs:
+                statement['Action'].append(service['ServiceNamespace']+':'+action['ActionName'])
+          if len(statement['Action']) > 0:
+            statements.append(statement)
+  
+  return statements
+
 @awstools.group()
 def iam():
   """ IAM related commands """
@@ -135,7 +171,8 @@ def role():
 
 @role.command()
 @click.argument('name', default='')
-def access2policy(name):
+@click.option('--policy', default='', help='only a specific policy', type=str)
+def access2policy(name, policy):
   """generate a policy based on the role's actual access usage"""
   global iam_client
 
@@ -152,32 +189,24 @@ def access2policy(name):
   
     role_arn = get_role_response['Role']['Arn']
 
-    generate_response = iam_client.generate_service_last_accessed_details(Arn=role_arn, Granularity='ACTION_LEVEL')
+    verbs = ['*']
+    if policy != '':
+      list_policies_paginator = iam_client.get_paginator('list_attached_role_policies')
+      list_policies_iterator = list_policies_paginator.paginate(RoleName=name)
 
-    job_id = generate_response['JobId']
-
-    while True:
-      response = iam_client.get_service_last_accessed_details(JobId=job_id)
-      if response['JobStatus'] == 'COMPLETED':
-        break
-      else:
-        time.sleep(1)
-    
-    statements = []
-
-    for service in response['ServicesLastAccessed']:
-      if 'TotalAuthenticatedEntities' in service.keys():
-        if service['TotalAuthenticatedEntities'] > 0:
-          statement = {}
-          statement['Effect'] = 'Allow'
-          statement['Resource'] = '*'
-          statement['Action'] = []
-          if 'TrackedActionsLastAccessed' in service.keys():
-            for action in service['TrackedActionsLastAccessed']:
-              if 'LastAccessedEntity' in action.keys():
-                statement['Action'].append(service['ServiceNamespace']+':'+action['ActionName'])
-            if len(statement['Action']) > 0:
-              statements.append(statement)
+      for page in list_policies_iterator:
+        for each_policy in page['AttachedPolicies']:
+          if each_policy['PolicyName'] == policy:
+            statements = iam_resource_to_statements(each_policy['PolicyArn'], ['*'])
+            verbs = []
+            for statement in statements:
+              verbs += statement['Action']
+            break
+        if verbs != ['*']:
+          break
+        
+    # role statements   
+    statements = iam_resource_to_statements(role_arn, verbs)
 
     if len(statements) == 0:
       print("No activity found for role: "+role_arn)
